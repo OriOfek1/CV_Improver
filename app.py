@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+import base64
+
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import sqlite3
 from sqlite3 import Error
 import json
@@ -48,6 +50,37 @@ def login():
         else:
             return "Database connection error.", 500
     return render_template('login.html')
+
+@app.route('/manual_signup')
+def manual_signup():
+    return render_template('manual_signup.html')
+
+@app.route('/submit_form', methods=['POST'])
+def submit_form():
+    try:
+        contact_info = request.form.to_dict(flat=False)
+        print(contact_info)
+        professional_summary = request.form['professional_summary']
+        photo = request.files['photo'] if 'photo' in request.files else None
+
+        # Handle photo file
+        photo_base64 = ""
+        if photo:
+            photo_base64 = base64.b64encode(photo.read()).decode('utf-8')
+
+        conn = update_database.create_connection("database.db")
+        applicant_uuid = update_database.insert_applicant(conn, (
+            contact_info['email'][0],
+            professional_summary,
+            photo_base64
+        ))
+        print("?")
+
+        return jsonify(
+            {"success": True, "message": "Data submitted successfully", "applicant_uuid": applicant_uuid})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
 
 @app.route('/dashboard/<uuid>')
 def dashboard(uuid):
