@@ -13,7 +13,7 @@ def decode_base64_to_image(encoded_string, output_path):
     with open(output_path, "wb") as image_file:
         image_file.write(base64.b64decode(encoded_string))
 
-def create_connection(db_file):
+def create_connection(db_file="database.db"):
     conn = None
     try:
         conn = sqlite3.connect(db_file)
