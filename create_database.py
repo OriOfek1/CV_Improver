@@ -152,4 +152,8 @@ def main():
         print("Error! Cannot create the database connection.")
 
 if __name__ == "__main__":
-    main()
+    conn = create_connection("database.db")
+    sql = """ALTER TABLE applicants RENAME COLUMN uuid to applicant_uuid;"""
+    cur = conn.cursor()
+    cur.execute(sql)
+    conn.commit()
