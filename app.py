@@ -1,13 +1,20 @@
-import base64
-
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from fastapi import FastAPI, Form, File, UploadFile, HTTPException
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 import sqlite3
 from sqlite3 import Error
 import json
 import update_database, create_database
+import os
+from docx import Document
+import test
+import base64
+import multipart
+from typing import List
 
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Needed for session management and flash messages
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")  # For serving static files
+
 
 DATABASE = 'database.db'
 
@@ -19,81 +26,90 @@ def get_db_connection():
         print(e)
     return conn
 
-@app.route('/')
-def index():
-    return render_template("index.html")
+@app.get("/", response_class=HTMLResponse)
+async def index():
+    with open("templates/index.html", "r") as f:
+        html_content = f.read()
+    return HTMLResponse(content=html_content)
 
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        conn = get_db_connection()
-        conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('login'))
-    return render_template('signup.html')
+@app.post("/signup")
+async def signup(username: str = Form(...), password: str = Form(...)):
+    conn = get_db_connection()
+    conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
+    conn.commit()
+    conn.close()
+    return RedirectResponse(url="/login", status_code=303)
 
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        user_uuid = request.form['uuid']
-        conn = sqlite3.connect("database.db")
-        if conn:
-            applicant = update_database.get_applicant(conn, user_uuid)
-            if applicant:
-                return redirect(url_for('dashboard', uuid=user_uuid))
-            else:
-                return "UUID not found. Please try again.", 404
+@app.post("/login")
+async def login(uuid: str = Form(...)):
+    conn = sqlite3.connect("database.db")
+    if conn:
+        applicant = update_database.get_applicant(conn, uuid)
+        if applicant:
+            return RedirectResponse(url=f'/dashboard/{uuid}', status_code=303)
         else:
-            return "Database connection error.", 500
-    return render_template('login.html')
+            raise HTTPException(status_code=404, detail="UUID not found. Please try again.")
+    else:
+        raise HTTPException(status_code=500, detail="Database connection error.")
 
-@app.route('/manual_signup')
-def manual_signup():
-    return render_template('manual_signup.html')
+@app.post("/submit-cover-letter/{uuid}")
+async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
+    cover_letter_content = test.main(coverLetterText)  # Assuming test.main is synchronous
 
-@app.route('/submit_form', methods=['POST'])
-def submit_form():
-    try:
-        contact_info = request.form.to_dict(flat=False)
-        print(contact_info)
-        professional_summary = request.form['professional_summary']
-        photo = request.files['photo'] if 'photo' in request.files else None
+    directory = 'temporary_files'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
-        # Handle photo file
-        photo_base64 = ""
-        if photo:
-            photo_base64 = base64.b64encode(photo.read()).decode('utf-8')
+    filename = f"Cover_Letter_for_{uuid}.docx"
+    filepath = os.path.join(directory, filename)
 
-        conn = update_database.create_connection("database.db")
-        applicant_uuid = update_database.insert_applicant(conn, (
-            contact_info['email'][0],
-            professional_summary,
-            photo_base64
-        ))
-        print("?")
+    doc = Document()
+    doc.add_paragraph(cover_letter_content)
+    doc.save(filepath)
 
-        return jsonify(
-            {"success": True, "message": "Data submitted successfully", "applicant_uuid": applicant_uuid})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)})
+    return FileResponse(filepath, media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document', filename=filename)
 
+@app.get("/generate-cover-letter/{uuid}", response_class=HTMLResponse)
+async def generate_cover_letter(uuid: str):
+    # You'll need to use a template engine like Jinja2, or manually read and modify the HTML file
+    with open("templates/generate_cover_letter.html", "r") as f:
+        html_content = f.read()
+    return HTMLResponse(content=html_content.replace("{{uuid}}", uuid))
 
-@app.route('/dashboard/<uuid>')
-def dashboard(uuid):
+@app.post("/submit_form")
+async def submit_form(
+    email: List[str] = Form(...),
+    professional_summary: str = Form(...),
+    photo: UploadFile = File(None)  # Optional file upload
+):
+    photo_base64 = ""
+    if photo:
+        photo_content = await photo.read()
+        photo_base64 = base64.b64encode(photo_content).decode('utf-8')
+
+    conn = update_database.create_connection("database.db")
+    applicant_uuid = update_database.insert_applicant(conn, (
+        email[0],
+        professional_summary,
+        photo_base64
+    ))
+
+    return {"success": True, "message": "Data submitted successfully", "applicant_uuid": applicant_uuid}
+
+@app.get("/dashboard/{uuid}", response_class=HTMLResponse)
+async def dashboard(uuid: str):
     conn = sqlite3.connect("database.db")
     if conn:
         applicant = update_database.get_applicant(conn, uuid)
         if applicant:
             contact_info = json.loads(applicant[1])
-            return render_template('dashboard.html', applicant=applicant, contact_info=contact_info)
+            # Render your dashboard template here, similar to the generate_cover_letter route
+            return HTMLResponse(content=f"Dashboard for UUID: {uuid}")  # Placeholder response
         else:
-            return "Applicant not found.", 404
+            raise HTTPException(status_code=404, detail="Applicant not found.")
     else:
-        return "Database connection error.", 500
+        raise HTTPException(status_code=500, detail="Database connection error.")
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
