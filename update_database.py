@@ -15,7 +15,7 @@ def create_connection(db_file="database.db"):
 
 def insert_applicant(conn, applicant):
     applicant_uuid = uuid.uuid4()
-    sql = ''' INSERT INTO applicants(uuid,contact_info,professional_summary,photo_base64)
+    sql = ''' INSERT INTO applicants(applicant_uuid,contact_info,professional_summary,photo_base64)
               VALUES(?,?,?,?) '''
     applicant_data = (str(applicant_uuid),) + applicant
     cur = conn.cursor()
@@ -57,7 +57,7 @@ def insert_language(conn, language):
 
 def get_applicant(conn, uuid):
     cur = conn.cursor()
-    cur.execute("SELECT * FROM applicants WHERE uuid=?", (uuid,))
+    cur.execute("SELECT * FROM applicants WHERE applicant_uuid=?", (uuid,))
     return cur.fetchone()
 
 def main():

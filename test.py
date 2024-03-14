@@ -46,8 +46,10 @@ def generate_cover_letter(applicant_data, job_data):
     )
     ai_output = chat_completion.choices[0].message.content
     print(ai_output)
+    return(ai_output)
 
-def main():
+
+def main(job_details):
     database = "database.db"
     uuid = "UUID_PLACEHOLDER"
     conn = create_connection(database)
@@ -58,31 +60,8 @@ def main():
 
         # Convert the data to JSON format
         applicant_data_json = json.dumps(applicant_data, indent=4)
-        print(applicant_data_json)
-        job_details = """
-        Overview:
-
-CADY is a growing SaaS startup developing a unique product that combines machine learning and electrical engineering.
-We are looking for a strong programmer to join a small team and help build and boost the product.
-
-
-In this role you will:
-
- Design and build the product infrastructure from its very core.
- Take part in the entire development cycle - design, implement, test, deploy.
- Write sophisticated algorithms for analyzing electrical board drawings.
- 
-
-Requirements:
-
-2+ years of programming experience – Must.
-Multidisciplinary mindset: able to quickly learn new technologies – Must.
-Team player, able to work in a small team – Must.
-Experience with Python – Significant advantage.
-Experience with React – Advantage.
-Knowledge in NLP or image processing – Advantage
-B.Sc. in Computer Science/Electrical Engineering or any other technical related fields – Advantage"""
-        generate_cover_letter(applicant_data_json, job_details)
+        cover_letter = generate_cover_letter(applicant_data_json, job_details)
+        return(cover_letter)
     else:
         print("Error! Cannot create the database connection.")
 
