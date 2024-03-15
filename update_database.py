@@ -17,17 +17,28 @@ def insert_applicant(conn, applicant):
     applicant_uuid = uuid.uuid4()
     sql = ''' INSERT INTO applicants(applicant_uuid,contact_info,professional_summary,photo_base64)
               VALUES(?,?,?,?) '''
-    applicant_data = (str(applicant_uuid),) + applicant
+    applicant_data = (str(applicant_uuid),) + applicant + (None,)
+    print("This is the data: ", applicant_data)  # Should show four elements
     cur = conn.cursor()
     cur.execute(sql, applicant_data)
     conn.commit()
-    return applicant_uuid
+    return str(applicant_uuid)
 
 def insert_education(conn, education):
     sql = ''' INSERT INTO education(applicant_uuid,school_name,level,start_date,end_date,gpa,field_of_study,achievements,extra_notes)
               VALUES(?,?,?,?,?,?,?,?,?) '''
     cur = conn.cursor()
+    print(education)
     cur.execute(sql, education)
+    conn.commit()
+    return cur.lastrowid
+
+def insert_project(conn, project):
+    sql = ''' INSERT INTO projects(applicant_uuid,project_name,project_description,links,extra_notes)
+              VALUES(?,?,?,?,?) '''
+    cur = conn.cursor()
+    print(project)
+    cur.execute(sql, project)
     conn.commit()
     return cur.lastrowid
 
@@ -48,7 +59,7 @@ def insert_skills(conn, skill):
     return cur.lastrowid
 
 def insert_language(conn, language):
-    sql = ''' INSERT INTO skills(applicant_uuid,language,proficiency_level)
+    sql = ''' INSERT INTO languages(applicant_uuid,language,proficiency_level)
                 VALUES(?,?,?)'''
     cur = conn.cursor()
     cur.execute(sql, language)

@@ -44,21 +44,12 @@
             <!-- Basic Information -->
             <div class="section active" id="basicInformation">
                 <h2>Basic Information</h2>
-                <input type="text" name="contact_info[first_name]" placeholder="First Name" required>
-                <input type="email" name="contact_info[last_name]" placeholder="Last Name" required>
-                <input type="email" name="contact_info[email]" placeholder="Email" required>
-                <input type="text" name="contact_info[phone]" placeholder="Phone Number" >
+                <input type="text" name="first_name" placeholder="First Name" required>
+                <input type="text" name="last_name" placeholder="Last Name" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="text" name="phone" placeholder="Phone Number">
                 <textarea name="professional_summary" placeholder="Professional Summary"></textarea>
                 <input type="file" name="photo" accept="image/*">
-            </div>
-
-            <!-- Education -->
-            <div class="section" id="education">
-                <h2>Education</h2>
-                <div id="educationContainer">
-                    <!-- Dynamic Education Fields Here -->
-                </div>
-                <button type="button" class="btn btn-primary" onclick="addEducationField()">Add Education</button>
             </div>
 
             <!-- Projects -->
@@ -70,7 +61,17 @@
                 <button type="button" class="btn btn-primary" onclick="addProjectField()">Add Project</button>
             </div>
 
-             <div class="section" id="languages">
+            <!-- Education -->
+            <div class="section" id="education">
+                <h2>Education</h2>
+                <div id="educationContainer"> <!-- Adjusted the container ID -->
+                    <!-- Dynamic Education Fields Here -->
+                </div>
+                <button type="button" class="btn btn-primary" onclick="addEducationField()">Add Education</button>
+            </div>
+
+            <!-- Languages -->
+            <div class="section" id="languages">
                 <h2>Languages</h2>
                 <div id="languagesContainer"></div>
                 <button type="button" class="btn btn-primary" onclick="addLanguageField()">Add Language</button>
@@ -83,6 +84,7 @@
                 <button type="button" class="btn btn-primary" onclick="addSkillField()">Add Skill</button>
             </div>
 
+            <!-- Work Experience -->
             <div class="section" id="workExperience">
                 <h2>Work Experience</h2>
                 <div id="workExperienceContainer">
@@ -114,27 +116,32 @@
         const submitBtn = document.getElementById('submitBtn');
 
         function confirmSubmission() {
-    const confirmation = confirm("Are you sure you want to submit your details?");
-    if (confirmation) {
-        // Prevent the default form submission
-        event.preventDefault();
-
-        // Gather form data
-        const form = document.getElementById('signupForm');
-        const formData = new FormData(form);
-        fetch('/submit_form', {
-            method: 'POST',
-            body: formData,
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Success:', data);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-    }
-}
+            const isConfirmed = confirm("Are you sure you want to submit?");
+            if (isConfirmed) {
+                const formData = new FormData(document.getElementById('signupForm'));
+                const projects = [];
+                const projectGroups = document.querySelectorAll('.project-group');
+                projectGroups.forEach((group) => {
+                    const projectName = group.querySelector('input[name="projects[project_name][]"]').value;
+                    const projectDescription = group.querySelector('textarea[name="projects[project_description][]"]').value;
+                    projects.push({
+                        project_name: projectName,
+                        project_description: projectDescription
+                    });
+                });
+                const contact_info = JSON.stringify({
+                    "first_name": formData.get("first_name"),
+                    "last_name": formData.get("last_name"),
+                    "email": formData.get("email"),
+                    "phone": formData.get("phone")
+                });
+                alert(JSON.stringify(contact_info));
+                document.getElementById('signupForm').submit();
+                // Or if you need to do additional validation or AJAX submission, include that logic here
+            } else {
+                console.log('Submission cancelled.');
+            }
+        }
 
         function updateNavigationButtons() {
             prevBtn.disabled = currentSectionIndex === 0;
@@ -155,7 +162,7 @@
         }
 
         function addEducationField() {
-            const container = document.getElementById('educationContainer');
+            const container = document.getElementById('educationContainer'); // Ensure this matches your HTML
             const html = `
                 <div class="education-group">
                     <input type="text" name="education[school_name][]" placeholder="School Name" >
