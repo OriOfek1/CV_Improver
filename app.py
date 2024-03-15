@@ -108,6 +108,11 @@ async def generate_cover_letter(uuid: str):
         html_content = f.read()
     return HTMLResponse(content=html_content.replace("{{uuid}}", uuid))
 
+@app.get("/generate-cv/{uuid}", response_class=HTMLResponse)
+async def generate_cv(uuid: str):
+    with open("templates/generate_cv.html", "r") as f:
+        html_content = f.read()
+    return HTMLResponse(content=html_content.replace("{{uuid}}", uuid))
 
 @app.post("/submit_form")
 async def submit_form(
