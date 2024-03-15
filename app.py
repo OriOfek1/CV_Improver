@@ -6,6 +6,7 @@ import sqlite3
 from sqlite3 import Error
 import json
 import update_database, create_database
+from pydantic import BaseModel
 import os
 from docx import Document
 import test
@@ -114,30 +115,35 @@ async def generate_cv(uuid: str):
         html_content = f.read()
     return HTMLResponse(content=html_content.replace("{{uuid}}", uuid))
 
+class SubmitFormSchema(BaseModel):
+    contact_info: str
+    professional_summary: str
+    education: str
+    projects: str
+    work_experience: str
+    skills: str
+    languages: str
+    volunteering: str
+    # Add any other fields you expect to receive
+
 @app.post("/submit_form")
-async def submit_form(
-        contact_info: str = Form(...),  # JSON string to handle nested objects
-        professional_summary: str = Form(...),
-        education: str = Form(...),  # JSON string for education sections
-        projects: str = Form(...),  # JSON string for projects
-        work_experience: str = Form(...),  # JSON string for work experience
-        skills: str = Form(...),  # JSON string for skills
-        languages: str = Form(...),  # JSON string for languages
-        # photo: Optional[UploadFile] = File(None)  # Optional file upload
-):
-    # Decode the contact info, education, projects, work experience, skills, and languages from JSON strings
-    contact_info_data = json.loads(contact_info)
-    education_data = json.loads(education)
-    projects_data = json.loads(projects)
-    work_experience_data = json.loads(work_experience)
-    skills_data = json.loads(skills)
-    languages_data = json.loads(languages)
+async def submit_form(body: SubmitFormSchema):
+    contact_info_data = json.loads(body.contact_info)
+    education_data = json.loads(body.education)
+    projects_data = json.loads(body.projects)
+    work_experience_data = json.loads(body.work_experience)
+    skills_data = json.loads(body.skills)
+    languages_data = json.loads(body.languages)
+    professional_summary = body.professional_summary
+    volunteering_data = json.loads(body.volunteering)
+
     print(contact_info_data)
     print(education_data)
     print(projects_data)
     print(work_experience_data)
     print(skills_data)
     print(languages_data)
+    print(volunteering_data)
 
     # Connect to the database
     conn = update_database.create_connection("database.db")
@@ -164,6 +170,9 @@ async def submit_form(
 
     for language in languages_data:
         update_database.insert_language(conn, (applicant_uuid,) + tuple(language.values()))
+
+    for vol in volunteering_data:
+        update_database.insert_volunteering(conn, (applicant_uuid,) + tuple(vol.values()))
 
     return {"success": True, "message": "Data submitted successfully", "applicant_uuid": str(applicant_uuid)}
 
