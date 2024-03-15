@@ -34,8 +34,8 @@ def insert_education(conn, education):
     return cur.lastrowid
 
 def insert_project(conn, project):
-    sql = ''' INSERT INTO projects(applicant_uuid,project_name,project_description,links,extra_notes)
-              VALUES(?,?,?,?,?) '''
+    sql = ''' INSERT INTO projects(applicant_uuid,project_name,project_description,extra_notes)
+              VALUES(?,?,?,?) '''
     cur = conn.cursor()
     print(project)
     cur.execute(sql, project)
@@ -63,6 +63,14 @@ def insert_language(conn, language):
                 VALUES(?,?,?)'''
     cur = conn.cursor()
     cur.execute(sql, language)
+    conn.commit()
+    return cur.lastrowid
+
+def insert_volunteering(conn, volunteering):
+    sql = ''' INSERT INTO volunteer_work(applicant_uuid,organization,role,details)
+            VALUES(?,?,?,?)'''
+    cur = conn.cursor()
+    cur.execute(sql, volunteering)
     conn.commit()
     return cur.lastrowid
 

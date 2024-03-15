@@ -115,7 +115,7 @@
         const nextBtn = document.getElementById('nextBtn');
         const submitBtn = document.getElementById('submitBtn');
 
-        function confirmSubmission() {
+        async function confirmSubmission() {
             const isConfirmed = confirm("Are you sure you want to submit?");
             if (isConfirmed) {
                 const formData = new FormData(document.getElementById('signupForm'));
@@ -124,9 +124,30 @@
                 projectGroups.forEach((group) => {
                     const projectName = group.querySelector('input[name="projects[project_name][]"]').value;
                     const projectDescription = group.querySelector('textarea[name="projects[project_description][]"]').value;
+                    const projectExtraNotes = group.querySelector('textarea[name="projects[project_extra_notes][]"]').value;
                     projects.push({
                         project_name: projectName,
-                        project_description: projectDescription
+                        project_description: projectDescription,
+                        extra_notes: projectExtraNotes
+                    });
+                });
+                const educationList = [];
+                const educationGroups = document.querySelectorAll('.education-group');
+                educationGroups.forEach((group) => {
+                const schoolName = group.querySelector('input[name="education[school_name][]"]').value;
+                const schoolLevel = group.querySelector('input[name="education[level][]"]').value;
+                const schoolStartDate = group.querySelector('input[name="education[start_date][]"]').value;
+                const schoolEndDate = group.querySelector('input[name="education[end_date][]"]').value;
+                const schoolAchievements = group.querySelector('textarea[name="education[achievements][]"]').value;
+                educationList.push({
+                    school_name: schoolName,
+                    level: schoolLevel,
+                    start_date: schoolStartDate,
+                    end_date: schoolEndDate,
+                    gpa: 15,
+                    field_of_study: "Computer Science",
+                    achievements: schoolAchievements,
+                    extra_notes: "None"
                     });
                 });
                 const contact_info = JSON.stringify({
@@ -135,9 +156,84 @@
                     "email": formData.get("email"),
                     "phone": formData.get("phone")
                 });
-                alert(JSON.stringify(contact_info));
-                document.getElementById('signupForm').submit();
-                // Or if you need to do additional validation or AJAX submission, include that logic here
+                const languages = [];
+                document.querySelectorAll('.language-group').forEach((group) => {
+                    const languageName = group.querySelector('input[name="languages[name][]"]').value;
+                    const languageLevel = group.querySelector('select[name="languages[level][]"]').value;
+                    languages.push({
+                        name: languageName,
+                        level: languageLevel
+                    });
+                });
+                const skills = [];
+                document.querySelectorAll('.skill-group').forEach((group) => {
+                    const skillName = group.querySelector('input[name="skills[name][]"]').value;
+                    const skillLevel = group.querySelector('select[name="skills[level][]"]').value;
+                    skills.push({
+                        name: skillName,
+                        level: skillLevel
+                    });
+                });
+                const workExperiences = [];
+                document.querySelectorAll('#workExperienceContainer div').forEach((group) => {
+                    const title = group.querySelector('input[name="work_experience[title][]"]').value;
+                    const companyName = group.querySelector('input[name="work_experience[company_name][]"]').value;
+                    const achievements = group.querySelector('textarea[name="work_experience[achievements][]"]').value;
+                    const extraNotes = group.querySelector('textarea[name="work_experience[extra_notes][]"]').value;
+                    workExperiences.push({
+                        title: title,
+                        company_name: companyName,
+                        achievements: achievements,
+                        extra_notes: extraNotes
+                    });
+                });
+                const volunteeringActivities = [];
+                document.querySelectorAll('#volunteeringContainer div').forEach((group) => {
+                    const organization = group.querySelector('input[name="volunteering[organization][]"]').value;
+                    const role = group.querySelector('input[name="volunteering[role][]"]').value;
+                    const details = group.querySelector('textarea[name="volunteering[details][]"]').value;
+                    volunteeringActivities.push({
+                        organization: organization,
+                        role: role,
+                        details: details
+                    });
+                });
+                const body = {
+                contact_info: contact_info,
+                professional_summary: "hiyush",
+                education: JSON.stringify(educationList),
+                projects: JSON.stringify(projects),
+                work_experience: JSON.stringify(workExperiences),
+                skills: JSON.stringify(skills),
+                languages: JSON.stringify(languages),
+                volunteering: JSON.stringify(volunteeringActivities)
+                };
+
+                try {
+                    const response = await fetch('/submit_form', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(body)
+                    });
+                    if (response.ok) {
+                        const jsonResponse = await response.json();
+                        // Check if the submission was successful and the UUID is present
+                        if (jsonResponse.success && jsonResponse.applicant_uuid) {
+                            alert(`This is your UUID, don't forget it: ${jsonResponse.applicant_uuid}`);
+                            // Redirect the user to the dashboard page for the newly created applicant
+                            window.location.href = `/dashboard/${jsonResponse.applicant_uuid}`;
+                        } else {
+                            alert('Submission failed: ' + jsonResponse.message);
+                        }
+                    } else {
+                        alert('Submission failed. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error during submission:', error);
+                    alert('Submission error. Please check the console for more details.');
+                }
             } else {
                 console.log('Submission cancelled.');
             }
@@ -169,6 +265,8 @@
                     <input type="text" name="education[level][]" placeholder="Level" >
                     <input type="date" name="education[start_date][]" placeholder="Start Date" >
                     <input type="date" name="education[end_date][]" placeholder="End Date" >
+                    <input type="number" name="education[gpa][]" placeholder="GPA" >
+                    <input type="text" name="education[field_of_study][]" placeholder="Field of Study" >
                     <textarea name="education[achievements][]" placeholder="Achievements"></textarea>
                     <button type="button" onclick="removeThisField(this)">Remove</button>
                 </div>
@@ -182,6 +280,7 @@
                 <div class="project-group">
                     <input type="text" name="projects[project_name][]" placeholder="Project Name" >
                     <textarea name="projects[project_description][]" placeholder="Project Description"></textarea>
+                    <textarea name="projects[project_extra_notes][]" placeholder="Extra Notes"></textarea>
                     <button type="button" onclick="removeThisField(this)">Remove</button>
                 </div>
             `;
