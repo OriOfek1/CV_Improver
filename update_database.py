@@ -79,7 +79,36 @@ def get_applicant(conn, uuid):
     cur.execute("SELECT * FROM applicants WHERE applicant_uuid=?", (uuid,))
     return cur.fetchone()
 
-def main():
-    pass
+
+def get_all_applicant_data(conn, applicant_uuid):
+    data = {}
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM applicants WHERE applicant_uuid=?", (applicant_uuid,))
+    applicant_data = cur.fetchone()
+    if not applicant_data:
+        return None
+    data['applicant'] = {
+        'uuid': applicant_data[0],
+        'contact_info': applicant_data[1],
+        'professional_summary': applicant_data[2],
+        'photo_base64': applicant_data[3],
+    }
+    cur.execute("SELECT * FROM education WHERE applicant_uuid=?", (applicant_uuid,))
+    data['education'] = cur.fetchall()
+    cur.execute("SELECT * FROM projects WHERE applicant_uuid=?", (applicant_uuid,))
+    data['projects'] = cur.fetchall()
+    cur.execute("SELECT * FROM work_experience WHERE applicant_uuid=?", (applicant_uuid,))
+    data['work_experience'] = cur.fetchall()
+    cur.execute("SELECT * FROM skills WHERE applicant_uuid=?", (applicant_uuid,))
+    data['skills'] = cur.fetchall()
+    cur.execute("SELECT * FROM languages WHERE applicant_uuid=?", (applicant_uuid,))
+    data['languages'] = cur.fetchall()
+    cur.execute("SELECT * FROM volunteer_work WHERE applicant_uuid=?", (applicant_uuid,))
+    data['volunteering'] = cur.fetchall()
+
+    return data
+
+
+print(get_all_applicant_data(conn=create_connection(), applicant_uuid="UUID_PLACEHOLDER"))
 
 

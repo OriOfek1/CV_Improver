@@ -18,7 +18,6 @@ def fetch_applicant_data(uuid, conn):
         cursor.execute(query, (uuid,))
         rows = cursor.fetchall()
 
-        # Get column names to use as keys in the dictionaries
         columns = [column[0] for column in cursor.description]
 
         for row in rows:
@@ -58,7 +57,6 @@ def main(job_details):
         applicant_data = fetch_applicant_data(uuid, conn)
         conn.close()
 
-        # Convert the data to JSON format
         applicant_data_json = json.dumps(applicant_data, indent=4)
         cover_letter = generate_cover_letter(applicant_data_json, job_details)
         return(cover_letter)

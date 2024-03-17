@@ -248,7 +248,7 @@
         function navigate(direction) {
             if (direction === -1 && currentSectionIndex === 0 ||
                 direction === 1 && currentSectionIndex === sections.length - 1) {
-                return; // Do nothing if we're at the start or end
+                return;
             }
 
             sections[currentSectionIndex].classList.remove('active');
@@ -291,7 +291,6 @@
             button.parentElement.remove();
         }
 
-        // Initialize with one set of fields
         document.addEventListener('DOMContentLoaded', () => {
             addEducationField();
             addProjectField();

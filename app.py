@@ -87,7 +87,7 @@ async def get_manual_signup():
 
 @app.post("/submit-cover-letter/{uuid}")
 async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
-    cover_letter_content = test.main(coverLetterText)  # Assuming test.main is synchronous
+    cover_letter_content = test.main(coverLetterText)
 
     directory = 'temporary_files'
     if not os.path.exists(directory):
@@ -104,7 +104,6 @@ async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
 
 @app.get("/generate-cover-letter/{uuid}", response_class=HTMLResponse)
 async def generate_cover_letter(uuid: str):
-    # You'll need to use a template engine like Jinja2, or manually read and modify the HTML file
     with open("templates/generate_cover_letter.html", "r") as f:
         html_content = f.read()
     return HTMLResponse(content=html_content.replace("{{uuid}}", uuid))
@@ -124,7 +123,6 @@ class SubmitFormSchema(BaseModel):
     skills: str
     languages: str
     volunteering: str
-    # Add any other fields you expect to receive
 
 @app.post("/submit_form")
 async def submit_form(body: SubmitFormSchema):
@@ -145,17 +143,14 @@ async def submit_form(body: SubmitFormSchema):
     print(languages_data)
     print(volunteering_data)
 
-    # Connect to the database
     conn = update_database.create_connection("database.db")
 
-    # Insert main applicant data and retrieve UUID
     applicant_uuid = update_database.insert_applicant(conn, (
         json.dumps(contact_info_data),
         professional_summary
         # photo_base64
     ))
 
-    # Insert data into related tables using the applicant_uuid
     for edu in education_data:
         update_database.insert_education(conn, (applicant_uuid,) + tuple(edu.values()))
 
@@ -180,6 +175,11 @@ async def submit_form(body: SubmitFormSchema):
 async def post_login(uuid: str = Form(...)):
     return RedirectResponse(url=f"/dashboard/{uuid}", status_code=303)
 
+@app.post("/edit_data/{uuid}", response_class=HTMLResponse)
+async def edit_data(uuid: str):
+    user_data = update_database.get_all_applicant_data(uuid)
+    # COMPLETE ILAI :)))
+
 @app.get("/dashboard/{uuid}", response_class=HTMLResponse)
 async def dashboard(request: Request, uuid: str):
     print(uuid)
@@ -194,10 +194,8 @@ async def dashboard(request: Request, uuid: str):
                                                "contact_info": contact_info,
                                                "applicant": applicant})
         else:
-            # Redirect to login with error if the applicant is not found
             return RedirectResponse(url="/login?error=UUID not found", status_code=303)
     else:
-        # Redirect to login with error if there's a database connection issue
         return RedirectResponse(url="/login?error=Database connection error", status_code=303)
 
 
