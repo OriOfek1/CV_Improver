@@ -16,6 +16,8 @@ import multipart
 from typing import List
 import jinja2
 from fastapi.middleware.cors import CORSMiddleware
+from CV_generator import create_CV
+
 
 
 app = FastAPI()
@@ -101,8 +103,21 @@ async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
         filename=f"Cover_Letter_for_{uuid}.docx")
 
 @app.post("/submit-cv/{uuid}")
-async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
-    print("Adi stop picking your lips")
+async def submit_cv(uuid: str, coverLetterText: str = Form(...)):
+    directory = 'temporary_files'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    # Assume you have a template document for the CV
+    template_document = 'cv_template.docx'
+
+    # Create or update the CV for the given UUID
+    cv_path = create_CV(uuid, coverLetterText, template_document)
+
+    # Use the created or updated CV path to return the document
+    return FileResponse(cv_path, media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        filename=os.path.basename(cv_path))
+
 
 @app.get("/generate-cover-letter/{uuid}", response_class=HTMLResponse)
 async def generate_cover_letter(uuid: str):
