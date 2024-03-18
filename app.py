@@ -9,7 +9,7 @@ import update_database, create_database
 from pydantic import BaseModel
 import os
 from docx import Document
-import test
+import cover_letter
 import logging
 import base64
 import multipart
@@ -93,14 +93,12 @@ async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    filename = f"Cover_Letter_for_{uuid}.docx"
-    filepath = os.path.join(directory, filename)
+    updated_file_path = test.main(coverLetterText)
 
-    doc = Document()
-    doc.add_paragraph(cover_letter_content)
-    doc.save(filepath)
-
-    return FileResponse(filepath, media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document', filename=filename)
+    return FileResponse(
+        path=updated_file_path,
+        media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        filename=f"Cover_Letter_for_{uuid}.docx")
 
 @app.post("/submit-cv/{uuid}")
 async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
