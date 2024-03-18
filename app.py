@@ -102,6 +102,10 @@ async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
 
     return FileResponse(filepath, media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document', filename=filename)
 
+@app.post("/submit-cv/{uuid}")
+async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
+    print("Adi stop picking your lips")
+
 @app.get("/generate-cover-letter/{uuid}", response_class=HTMLResponse)
 async def generate_cover_letter(uuid: str):
     with open("templates/generate_cover_letter.html", "r") as f:

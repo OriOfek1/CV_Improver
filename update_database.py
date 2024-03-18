@@ -108,7 +108,3 @@ def get_all_applicant_data(conn, applicant_uuid):
 
     return data
 
-
-print(get_all_applicant_data(conn=create_connection(), applicant_uuid="UUID_PLACEHOLDER"))
-
-
