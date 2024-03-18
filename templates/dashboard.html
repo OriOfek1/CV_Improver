@@ -48,9 +48,9 @@
         <div class="bg-light p-5 rounded">
             <h1>Applicant Dashboard</h1>
             <div class="user-details">
-                <h2>Contact Information</h2>
-                <p><strong>Email:</strong> {{ contact_info.email }}</p>
-                <p><strong>Phone:</strong> {{ contact_info.phone }}</p>
+                <h2>{{ full_name }}</h2>
+                <p><strong>Email:</strong> {{ email }}</p>
+                <p><strong>Phone:</strong> {{ phone_number }}</p>
             </div>
             <div class="actions mt-4">
                 <a href="/edit-data/{{ applicant[0] }}" class="btn btn-primary">Edit Data</a>

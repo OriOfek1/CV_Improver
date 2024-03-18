@@ -200,11 +200,11 @@ async def dashboard(request: Request, uuid: str):
     if conn:
         applicant = update_database.get_applicant(conn, uuid)
         if applicant:
-            print(applicant)
-            contact_info = json.loads(applicant[1])
             return templates.TemplateResponse("dashboard.html",
                                               {"request": request,
-                                               "contact_info": contact_info,
+                                               "email": applicant[1],
+                                               "phone_number": applicant[2],
+                                               "full_name": applicant[4],
                                                "applicant": applicant})
         else:
             return RedirectResponse(url="/login?error=UUID not found", status_code=303)
