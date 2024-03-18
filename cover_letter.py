@@ -5,7 +5,6 @@ from datetime import datetime
 from docx import Document
 from create_database import create_connection
 from openai import OpenAI
-import aspose.words as aw
 import os
 
 

@@ -89,13 +89,13 @@ async def get_manual_signup():
 
 @app.post("/submit-cover-letter/{uuid}")
 async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
-    cover_letter_content = test.main(coverLetterText)
+    cover_letter_content = cover_letter.main(coverLetterText)
 
     directory = 'temporary_files'
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    updated_file_path = test.main(coverLetterText)
+    updated_file_path = cover_letter.main(coverLetterText)
 
     return FileResponse(
         path=updated_file_path,
@@ -120,16 +120,12 @@ async def submit_cv(uuid: str, coverLetterText: str = Form(...)):
 
 
 @app.get("/generate-cover-letter/{uuid}", response_class=HTMLResponse)
-async def generate_cover_letter(uuid: str):
-    with open("templates/generate_cover_letter.html", "r") as f:
-        html_content = f.read()
-    return HTMLResponse(content=html_content.replace("{{uuid}}", uuid))
+async def generate_cover_letter(request: Request, uuid: str):
+    return templates.TemplateResponse("generate_cover_letter.html", {"request": request, "uuid": uuid})
 
 @app.get("/generate-cv/{uuid}", response_class=HTMLResponse)
-async def generate_cv(uuid: str):
-    with open("templates/generate_cv.html", "r") as f:
-        html_content = f.read()
-    return HTMLResponse(content=html_content.replace("{{uuid}}", uuid))
+async def generate_cv(request: Request, uuid: str):
+    return templates.TemplateResponse("generate_cv.html", {"request": request, "uuid": uuid})
 
 class SubmitFormSchema(BaseModel):
     contact_info: str
