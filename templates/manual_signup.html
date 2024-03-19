@@ -49,6 +49,7 @@
                 <input type="email" name="email" placeholder="Email" required>
                 <input type="text" name="phone" placeholder="Phone Number">
                 <textarea name="professional_summary" placeholder="Professional Summary"></textarea>
+                <input type="text" name="title" placeholder="Title">
                 <input type="file" name="photo" accept="image/*">
             </div>
 
@@ -150,12 +151,14 @@
                     extra_notes: "None"
                     });
                 });
-                const contact_info = JSON.stringify({
-                    "first_name": formData.get("first_name"),
-                    "last_name": formData.get("last_name"),
+                const applicant_info = JSON.stringify({
+                    "full_name": formData.get("first_name") + " " + formData.get("last_name"),
                     "email": formData.get("email"),
-                    "phone": formData.get("phone")
+                    "phone": formData.get("phone"),
+                    "proffesional_summary": formData.get("professional_summary"),
+                    "title": formData.get("title")
                 });
+                alert(applicant_info)
                 const languages = [];
                 document.querySelectorAll('.language-group').forEach((group) => {
                     const languageName = group.querySelector('input[name="languages[name][]"]').value;
@@ -199,8 +202,7 @@
                     });
                 });
                 const body = {
-                contact_info: contact_info,
-                professional_summary: "hiyush",
+                applicant_data: applicant_info,
                 education: JSON.stringify(educationList),
                 projects: JSON.stringify(projects),
                 work_experience: JSON.stringify(workExperiences),
@@ -208,7 +210,6 @@
                 languages: JSON.stringify(languages),
                 volunteering: JSON.stringify(volunteeringActivities)
                 };
-
                 try {
                     const response = await fetch('/submit_form', {
                         method: 'POST',

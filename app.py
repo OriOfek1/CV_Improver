@@ -128,8 +128,7 @@ async def generate_cv(request: Request, uuid: str):
     return templates.TemplateResponse("generate_cv.html", {"request": request, "uuid": uuid})
 
 class SubmitFormSchema(BaseModel):
-    contact_info: str
-    professional_summary: str
+    applicant_data: str
     education: str
     projects: str
     work_experience: str
@@ -139,16 +138,16 @@ class SubmitFormSchema(BaseModel):
 
 @app.post("/submit_form")
 async def submit_form(body: SubmitFormSchema):
-    contact_info_data = json.loads(body.contact_info)
+    print(body)
+    applicant_data = json.loads(body.applicant_data)
     education_data = json.loads(body.education)
     projects_data = json.loads(body.projects)
     work_experience_data = json.loads(body.work_experience)
     skills_data = json.loads(body.skills)
     languages_data = json.loads(body.languages)
-    professional_summary = body.professional_summary
     volunteering_data = json.loads(body.volunteering)
 
-    print(contact_info_data)
+    print(applicant_data)
     print(education_data)
     print(projects_data)
     print(work_experience_data)
@@ -158,11 +157,7 @@ async def submit_form(body: SubmitFormSchema):
 
     conn = update_database.create_connection("database.db")
 
-    applicant_uuid = update_database.insert_applicant(conn, (
-        json.dumps(contact_info_data),
-        professional_summary
-        # photo_base64
-    ))
+    applicant_uuid = update_database.insert_applicant(conn, json.dumps(applicant_data))
 
     for edu in education_data:
         update_database.insert_education(conn, (applicant_uuid,) + tuple(edu.values()))

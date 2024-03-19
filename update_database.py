@@ -13,12 +13,24 @@ def create_connection(db_file="database.db"):
         print(e)
     return conn
 
-def insert_applicant(conn, applicant):
+
+
+def insert_applicant(conn, applicant_json):
     applicant_uuid = uuid.uuid4()
-    sql = ''' INSERT INTO applicants(uuid,contact_info,professional_summary,photo_base64)
-              VALUES(?,?,?,?) '''
-    applicant_data = (str(applicant_uuid),) + applicant + (None,)
-    print("This is the data: ", applicant_data)  # Should show four elements
+    applicant = json.loads(applicant_json)
+
+    sql = ''' INSERT INTO applicants(applicant_uuid, full_name, email, phone_number, professional_summary, title, photo_base64)
+                  VALUES(?,?,?,?,?,?,?) '''
+
+    applicant_data = (
+        str(applicant_uuid),
+        applicant.get('full_name', ''),
+        applicant.get('email', ''),
+        applicant.get('phone', ''),
+        applicant.get('professional_summary', ''),
+        applicant.get('title', ''),
+        None
+    )
     cur = conn.cursor()
     cur.execute(sql, applicant_data)
     conn.commit()
@@ -76,14 +88,14 @@ def insert_volunteering(conn, volunteering):
 
 def get_applicant(conn, uuid):
     cur = conn.cursor()
-    cur.execute("SELECT * FROM applicants WHERE uuid=?", (uuid,))
+    cur.execute("SELECT * FROM applicants WHERE applicant_uuid=?", (uuid,))
     return cur.fetchone()
 
 
 def get_all_applicant_data(conn, applicant_uuid):
     data = {}
     cur = conn.cursor()
-    cur.execute("SELECT * FROM applicants WHERE uuid=?", (applicant_uuid,))
+    cur.execute("SELECT * FROM applicants WHERE applicant_uuid=?", (applicant_uuid,))
     applicant_data = cur.fetchone()
     if not applicant_data:
         return None

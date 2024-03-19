@@ -29,11 +29,10 @@ def fetch_applicant_data(uuid, conn):
             data[table].append(row_data)
 
 
-    contact_info_dict = json.loads(data['applicants'][0]['contact_info'])
-    email = contact_info_dict['email']
-    phone = contact_info_dict['phone']
+    email = data['applicants'][0]['email']
+    phone = data['applicants'][0]['phone_number']
     full_name = data['applicants'][0]['full_name']
-    title = data['applicants'][0]['title']
+    title = data['applicants'][0]['professional_summary']
     return data, email, phone, full_name, title
 
 def generate_cover_letter(applicant_data, job_data):
