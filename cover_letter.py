@@ -32,7 +32,7 @@ def fetch_applicant_data(uuid, conn):
     email = data['applicants'][0]['email']
     phone = data['applicants'][0]['phone_number']
     full_name = data['applicants'][0]['full_name']
-    title = data['applicants'][0]['professional_summary']
+    title = data['applicants'][0]['title']
     return data, email, phone, full_name, title
 
 def generate_cover_letter(applicant_data, job_data):
@@ -144,9 +144,9 @@ def update_word_template(file_path, contact_tuple, cover_letter_text):
     return new_file_path
 
 
-def main(job_details):
+def main(job_details, uuid):
     database = "database.db"
-    uuid = "UUID_PLACEHOLDER"
+    print('in main')
     conn = create_connection(database)
 
     if conn is not None:
