@@ -1,11 +1,10 @@
 import sqlite3
 import json
 from datetime import datetime
-
 from docx import Document
 from create_database import create_connection
 from openai import OpenAI
-import os
+
 
 
 def fetch_applicant_data(uuid, conn):
@@ -29,8 +28,10 @@ def fetch_applicant_data(uuid, conn):
             row_data = dict(zip(columns, row))
             data[table].append(row_data)
 
-    email = data['applicants'][0]['email']
-    phone = data['applicants'][0]['phone_number']
+
+    contact_info_dict = json.loads(data['applicants'][0]['contact_info'])
+    email = contact_info_dict['email']
+    phone = contact_info_dict['phone']
     full_name = data['applicants'][0]['full_name']
     title = data['applicants'][0]['title']
     return data, email, phone, full_name, title
@@ -165,4 +166,4 @@ def main(job_details):
 
 if __name__ == "__main__":
     job_details = "Your job details here"
-    something = update_word_template('CL template.docx', ('my email', '12322131232343434343434343434344343431312313', 'Ilai :)', 'Software guy'), 'I am cool')
+    something = update_word_template('CL template.docx', ('my email', '123213', 'Ilai :)', 'Software guy'), 'I am cool')

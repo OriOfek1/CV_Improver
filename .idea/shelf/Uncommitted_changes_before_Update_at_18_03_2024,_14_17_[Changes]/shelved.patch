@@ -1,0 +1,39 @@
+Index: test.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import sqlite3\nimport json\nfrom openai import OpenAI\nfrom create_database import create_connection\n\ndef fetch_applicant_data(uuid, conn):\n    tables = [\n        \"applicants\", \"education\", \"projects\", \"work_experience\",\n        \"volunteer_work\", \"languages\", \"certifications\",\n        \"awards\", \"skills\", \"personal_projects\"\n    ]\n    data = {}\n\n    for table in tables:\n        data[table] = []\n        query = f\"SELECT * FROM {table} WHERE applicant_uuid = ?\"\n        cursor = conn.cursor()\n        cursor.execute(query, (uuid,))\n        rows = cursor.fetchall()\n\n        columns = [column[0] for column in cursor.description]\n\n        for row in rows:\n            row_data = dict(zip(columns, row))\n            data[table].append(row_data)\n\n    return data\n\ndef generate_cover_letter(applicant_data, job_data):\n    try:\n        client = OpenAI(api_key='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')\n    except Exception as e:\n        print(str(e))\n    prompt = (f\"\"\"You are a professional recruiter, perfect for helping candidates get their dream jobs.\n                 Given the following job description and applicant details, write a cover letter that \n                 highlights the applicants qualities needed for the job (without making anything up).\n                 Output only the letter, without any explanation or details.\n                 <applicant_data>: {applicant_data}\n                 </applicant_data>\n                 <job_details>: {job_data}\n                 </job_data>\"\"\")\n    chat_completion = client.chat.completions.create(\n        messages=[{\"role\": \"user\", \"content\": prompt}],\n        model=\"gpt-3.5-turbo\"\n    )\n    ai_output = chat_completion.choices[0].message.content\n    print(ai_output)\n    return(ai_output)\n\n\ndef main(job_details):\n    database = \"database.db\"\n    uuid = \"UUID_PLACEHOLDER\"\n    conn = create_connection(database)\n\n    if conn is not None:\n        applicant_data = fetch_applicant_data(uuid, conn)\n        conn.close()\n\n        applicant_data_json = json.dumps(applicant_data, indent=4)\n        cover_letter = generate_cover_letter(applicant_data_json, job_details)\n        return(cover_letter)\n    else:\n        print(\"Error! Cannot create the database connection.\")\n\nif __name__ == \"__main__\":\n    main()\n
+===================================================================
+diff --git a/test.py b/test.py
+--- a/test.py	
++++ b/test.py	
+@@ -47,6 +47,30 @@
+     print(ai_output)
+     return(ai_output)
+ 
++def generate_cv(applicant_data, job_data):
++    try:
++
++        client = OpenAI(api_key='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')
++    except Exception as e:
++        print(str(e))
++    prompt = (f"""You are a professional recruiter, perfect for helping candidates get their dream jobs.
++                 Given the following job description and applicant details, write a cover letter that 
++                 highlights the applicants qualities needed for the job (without making anything up).
++                 Output only the letter, without any explanation or details.
++                 <applicant_data>: {applicant_data}
++                 </applicant_data>
++                 <job_details>: {job_data}
++                 </job_data>""")
++    chat_completion = client.chat.completions.create(
++        messages=[{"role": "user", "content": prompt}],
++        model="gpt-3.5-turbo"
++    )
++    ai_output = chat_completion.choices[0].message.content
++    print(ai_output)
++    return(ai_output)
++
++def stam(coverLetterText):
++    return ("Hello")
+ 
+ def main(job_details):
+     database = "database.db"
