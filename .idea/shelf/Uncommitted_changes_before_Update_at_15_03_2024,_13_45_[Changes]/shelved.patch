@@ -1,0 +1,313 @@
+Index: test.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import sqlite3\nimport json\nfrom openai import OpenAI\nfrom create_database import create_connection\n\ndef fetch_applicant_data(uuid, conn):\n    tables = [\n        \"applicants\", \"education\", \"projects\", \"work_experience\",\n        \"volunteer_work\", \"languages\", \"certifications\",\n        \"awards\", \"skills\", \"personal_projects\"\n    ]\n    data = {}\n\n    for table in tables:\n        data[table] = []\n        query = f\"SELECT * FROM {table} WHERE applicant_uuid = ?\"\n        cursor = conn.cursor()\n        cursor.execute(query, (uuid,))\n        rows = cursor.fetchall()\n\n        # Get column names to use as keys in the dictionaries\n        columns = [column[0] for column in cursor.description]\n\n        for row in rows:\n            row_data = dict(zip(columns, row))\n            data[table].append(row_data)\n\n    return data\n\ndef generate_cover_letter(applicant_data, job_data):\n    try:\n        client = OpenAI(api_key='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')\n    except Exception as e:\n        print(str(e))\n    prompt = (f\"\"\"You are a professional recruiter, perfect for helping candidates get their dream jobs.\n                 Given the following job description and applicant details, write a cover letter that \n                 highlights the applicants qualities needed for the job (without making anything up).\n                 Output only the letter, without any explanation or details.\n                 <applicant_data>: {applicant_data}\n                 </applicant_data>\n                 <job_details>: {job_data}\n                 </job_data>\"\"\")\n    chat_completion = client.chat.completions.create(\n        messages=[{\"role\": \"user\", \"content\": prompt}],\n        model=\"gpt-3.5-turbo\"\n    )\n    ai_output = chat_completion.choices[0].message.content\n    print(ai_output)\n    return(ai_output)\n\n\ndef main(job_details):\n    database = \"database.db\"\n    uuid = \"UUID_PLACEHOLDER\"\n    conn = create_connection(database)\n\n    if conn is not None:\n        applicant_data = fetch_applicant_data(uuid, conn)\n        conn.close()\n\n        # Convert the data to JSON format\n        applicant_data_json = json.dumps(applicant_data, indent=4)\n        cover_letter = generate_cover_letter(applicant_data_json, job_details)\n        return(cover_letter)\n    else:\n        print(\"Error! Cannot create the database connection.\")\n\nif __name__ == \"__main__\":\n    main()\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/test.py b/test.py
+--- a/test.py	(revision 63a5ba93e88daf69c878334e94ebd567bf787d02)
++++ b/test.py	(date 1710501405116)
+@@ -2,6 +2,11 @@
+ import json
+ from openai import OpenAI
+ from create_database import create_connection
++import pdfservices_sdk
++
++from adobe.pdfservices.operation.auth.credentials import Credentials
++from adobe.pdfservices.operation.pdfops import CreatePDFOperation
++from adobe.pdfservices.operation.io.file_ref import FileRef
+ 
+ def fetch_applicant_data(uuid, conn):
+     tables = [
+@@ -48,6 +53,43 @@
+     print(ai_output)
+     return(ai_output)
+ 
++def generate_cv(applicant_data, job_data):
++    try:
++
++
++        # Initialize the SDK
++        credentials = Credentials.service_account_credentials_builder() \
++            .from_file("path/to/your_credentials.json") \
++            .build()
++
++        # Create a PDF operation instance
++        create_pdf_operation = CreatePDFOperation(credentials)
++
++        # Set input and output files
++        input_file = FileRef.create_from_local_file("path/to/your_input.docx")
++        create_pdf_operation.set_input(input_file)
++        output_file = "path/to/your_output.pdf"
++        client = OpenAI(api_key='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')
++    except Exception as e:
++        print(str(e))
++    prompt = (f"""You are a professional recruiter, perfect for helping candidates get their dream jobs.
++                 Given the following job description and applicant details, write a cover letter that 
++                 highlights the applicants qualities needed for the job (without making anything up).
++                 Output only the letter, without any explanation or details.
++                 <applicant_data>: {applicant_data}
++                 </applicant_data>
++                 <job_details>: {job_data}
++                 </job_data>""")
++    chat_completion = client.chat.completions.create(
++        messages=[{"role": "user", "content": prompt}],
++        model="gpt-3.5-turbo"
++    )
++    ai_output = chat_completion.choices[0].message.content
++    print(ai_output)
++    return(ai_output)
++
++def stam(coverLetterText):
++    return ("Hello")
+ 
+ def main(job_details):
+     database = "database.db"
+Index: app.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from fastapi import FastAPI, Form, File, UploadFile, Request, Response, HTTPException\nfrom fastapi.responses import FileResponse, HTMLResponse, RedirectResponse\nfrom fastapi.staticfiles import StaticFiles\nfrom fastapi.templating import Jinja2Templates\nimport sqlite3\nfrom sqlite3 import Error\nimport json\nimport update_database, create_database\nimport os\nfrom docx import Document\nimport test\nimport logging\nimport base64\nimport multipart\nfrom typing import List\nimport jinja2\nfrom fastapi.middleware.cors import CORSMiddleware\n\n\napp = FastAPI()\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"*\"],  # REMEMBER TO FIX\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)\napp.mount(\"/static\", StaticFiles(directory=\"static\"), name=\"static\")\ntemplates = Jinja2Templates(directory=\"templates\")\n\n\nDATABASE = 'database.db'\n\n@app.post(\"/log\")\nasync def log_message(request: Request):\n    log_data = await request.json()\n    message = log_data.get(\"message\", \"\")\n    level = log_data.get(\"level\", \"info\").lower()\n\n    logger = logging.getLogger(\"uvicorn\")\n\n    if level == \"debug\":\n        logger.debug(message)\n    elif level == \"info\":\n        logger.info(message)\n    elif level == \"warning\":\n        logger.warning(message)\n    elif level == \"error\":\n        logger.error(message)\n    else:\n        raise HTTPException(status_code=400, detail=\"Invalid log level\")\n\n    return {\"message\": \"Log received\", \"level\": level, \"log_message\": message}\n\ndef get_db_connection():\n    conn = None\n    try:\n        conn = sqlite3.connect(DATABASE)\n    except Error as e:\n        print(e)\n    return conn\n\n@app.get(\"/\", response_class=HTMLResponse)\nasync def index():\n    with open(\"templates/index.html\", \"r\") as f:\n        html_content = f.read()\n    return HTMLResponse(content=html_content)\n\n@app.get(\"/login\", response_class=HTMLResponse)\nasync def get_login():\n    with open(\"templates/login.html\", \"r\", encoding=\"utf-8\") as f:\n        html_content = f.read()\n    return HTMLResponse(content=html_content)\n\n@app.get(\"/signup\", response_class=HTMLResponse)\nasync def get_signup():\n    with open(\"templates/signup.html\", \"r\", encoding=\"utf-8\") as f:\n        html_content = f.read()\n    return HTMLResponse(content=html_content)\n\n@app.get(\"/manual_signup\", response_class=HTMLResponse)\nasync def get_manual_signup():\n    with open(\"templates/manual_signup.html\", \"r\", encoding=\"utf-8\") as f:\n        html_content = f.read()\n    return HTMLResponse(content=html_content)\n\n@app.post(\"/submit-cover-letter/{uuid}\")\nasync def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):\n    cover_letter_content = test.main(coverLetterText)  # Assuming test.main is synchronous\n\n    directory = 'temporary_files'\n    if not os.path.exists(directory):\n        os.makedirs(directory)\n\n    filename = f\"Cover_Letter_for_{uuid}.docx\"\n    filepath = os.path.join(directory, filename)\n\n    doc = Document()\n    doc.add_paragraph(cover_letter_content)\n    doc.save(filepath)\n\n    return FileResponse(filepath, media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document', filename=filename)\n\n@app.get(\"/generate-cover-letter/{uuid}\", response_class=HTMLResponse)\nasync def generate_cover_letter(uuid: str):\n    # You'll need to use a template engine like Jinja2, or manually read and modify the HTML file\n    with open(\"templates/generate_cover_letter.html\", \"r\") as f:\n        html_content = f.read()\n    return HTMLResponse(content=html_content.replace(\"{{uuid}}\", uuid))\n\n@app.get(\"/generate-cv/{uuid}\", response_class=HTMLResponse)\nasync def generate_cv(uuid: str):\n    with open(\"templates/generate_cv.html\", \"r\") as f:\n        html_content = f.read()\n    return HTMLResponse(content=html_content.replace(\"{{uuid}}\", uuid))\n\n@app.post(\"/submit_form\")\nasync def submit_form(\n        contact_info: str = Form(...),  # JSON string to handle nested objects\n        professional_summary: str = Form(...),\n        education: str = Form(...),  # JSON string for education sections\n        projects: str = Form(...),  # JSON string for projects\n        work_experience: str = Form(...),  # JSON string for work experience\n        skills: str = Form(...),  # JSON string for skills\n        languages: str = Form(...),  # JSON string for languages\n        # photo: Optional[UploadFile] = File(None)  # Optional file upload\n):\n    # Decode the contact info, education, projects, work experience, skills, and languages from JSON strings\n    contact_info_data = json.loads(contact_info)\n    education_data = json.loads(education)\n    projects_data = json.loads(projects)\n    work_experience_data = json.loads(work_experience)\n    skills_data = json.loads(skills)\n    languages_data = json.loads(languages)\n    print(contact_info_data)\n    print(education_data)\n    print(projects_data)\n    print(work_experience_data)\n    print(skills_data)\n    print(languages_data)\n\n    # Connect to the database\n    conn = update_database.create_connection(\"database.db\")\n\n    # Insert main applicant data and retrieve UUID\n    applicant_uuid = update_database.insert_applicant(conn, (\n        json.dumps(contact_info_data),\n        professional_summary\n        # photo_base64\n    ))\n\n    # Insert data into related tables using the applicant_uuid\n    for edu in education_data:\n        update_database.insert_education(conn, (applicant_uuid,) + tuple(edu.values()))\n\n    for work in work_experience_data:\n        update_database.insert_work_experience(conn, (applicant_uuid,) + tuple(work.values()))\n\n    for project in projects_data:\n        update_database.insert_project(conn, (applicant_uuid,) + tuple(project.values()))\n\n    for skill in skills_data:\n        update_database.insert_skills(conn, (applicant_uuid,) + tuple(skill.values()))\n\n    for language in languages_data:\n        update_database.insert_language(conn, (applicant_uuid,) + tuple(language.values()))\n\n    return {\"success\": True, \"message\": \"Data submitted successfully\", \"applicant_uuid\": str(applicant_uuid)}\n\n@app.post(\"/login\")\nasync def post_login(uuid: str = Form(...)):\n    return RedirectResponse(url=f\"/dashboard/{uuid}\", status_code=303)\n\n@app.get(\"/dashboard/{uuid}\", response_class=HTMLResponse)\nasync def dashboard(request: Request, uuid: str):\n    print(uuid)\n    conn = get_db_connection()\n    if conn:\n        applicant = update_database.get_applicant(conn, uuid)\n        if applicant:\n            print(applicant)\n            contact_info = json.loads(applicant[1])\n            return templates.TemplateResponse(\"dashboard.html\",\n                                              {\"request\": request,\n                                               \"contact_info\": contact_info,\n                                               \"applicant\": applicant})\n        else:\n            # Redirect to login with error if the applicant is not found\n            return RedirectResponse(url=\"/login?error=UUID not found\", status_code=303)\n    else:\n        # Redirect to login with error if there's a database connection issue\n        return RedirectResponse(url=\"/login?error=Database connection error\", status_code=303)\n\n\nif __name__ == \"__main__\":\n    import uvicorn\n    uvicorn.run(app, host=\"0.0.0.0\", port=8080)
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app.py b/app.py
+--- a/app.py	(revision 63a5ba93e88daf69c878334e94ebd567bf787d02)
++++ b/app.py	(date 1710497739648)
+@@ -101,6 +101,23 @@
+ 
+     return FileResponse(filepath, media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document', filename=filename)
+ 
++@app.post("/submit-cv/{uuid}")
++async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
++    cover_letter_content = test.stam(coverLetterText)  # Assuming test.main is synchronous
++
++    directory = 'temporary_files'
++    if not os.path.exists(directory):
++        os.makedirs(directory)
++
++    filename = f"Cover_Letter_for_{uuid}.docx"
++    filepath = os.path.join(directory, filename)
++
++    doc = Document()
++    doc.add_paragraph(cover_letter_content)
++    doc.save(filepath)
++
++    return FileResponse(filepath, media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document', filename=filename)
++
+ @app.get("/generate-cover-letter/{uuid}", response_class=HTMLResponse)
+ async def generate_cover_letter(uuid: str):
+     # You'll need to use a template engine like Jinja2, or manually read and modify the HTML file
+Index: templates/generate_cv.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Generate Cover Letter - CV Improver</title>\n    <link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css\" rel=\"stylesheet\">\n    <style>\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            padding-top: 5rem;\n            background-color: #f8f9fa;\n        }\n        .container {\n            max-width: 960px;\n        }\n        #templatePreview img {\n            max-width: 100%;\n            height: auto;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <h1>Generate Cover Letter</h1>\n        <form action=\"/submit-cover-letter/{{ uuid }}\" method=\"post\" enctype=\"multipart/form-data\">\n            <div class=\"mb-3\">\n                <label for=\"templateSelect\" class=\"form-label\">Choose a CV Template</label>\n                <select class=\"form-select\" id=\"templateSelect\" name=\"templateSelect\">\n                    <option selected>Choose...</option>\n                    <option value=\"template1\">CV Template 1</option>\n                    <option value=\"template2\">CV Template 2</option>\n                    <option value=\"template3\">CV Template 3</option>\n                    <option value=\"template4\">CV Template 4</option>\n                    <option value=\"template5\">CV Template 5</option>\n                </select>\n            </div>\n            <div id=\"templatePreview\" class=\"mb-3\">\n                <p>Select a template to see a preview here.</p>\n            </div>\n            <div class=\"mb-3\">\n                <label for=\"cvUpload\" class=\"form-label\">Upload Your CV</label>\n                <input class=\"form-control\" type=\"file\" id=\"cvUpload\" name=\"cvUpload\">\n            </div>\n            <div class=\"mb-3\">\n                <label for=\"coverLetterText\" class=\"form-label\">Job Description</label>\n                <textarea class=\"form-control\" id=\"coverLetterText\" name=\"coverLetterText\" rows=\"10\" required></textarea>\n            </div>\n            <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\n        </form>\n    </div>\n    <script>\n        document.getElementById('templateSelect').addEventListener('change', function() {\n            var templatePreview = document.getElementById('templatePreview');\n            templatePreview.innerHTML = '<img src=\"path/to/selected/template/dummy-photo.jpg\" alt=\"Template Preview\">';\n        });\n    </script>\n</body>\n</html>\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/templates/generate_cv.html b/templates/generate_cv.html
+--- a/templates/generate_cv.html	(revision 63a5ba93e88daf69c878334e94ebd567bf787d02)
++++ b/templates/generate_cv.html	(date 1710497324956)
+@@ -3,7 +3,7 @@
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+-    <title>Generate Cover Letter - CV Improver</title>
++    <title>Generate CV - CV Improver</title>
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+     <style>
+         body {
+@@ -23,7 +23,7 @@
+ <body>
+     <div class="container">
+         <h1>Generate Cover Letter</h1>
+-        <form action="/submit-cover-letter/{{ uuid }}" method="post" enctype="multipart/form-data">
++        <form action="/submit-cv/{{ uuid }}" method="post" enctype="multipart/form-data">
+             <div class="mb-3">
+                 <label for="templateSelect" class="form-label">Choose a CV Template</label>
+                 <select class="form-select" id="templateSelect" name="templateSelect">
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+new file mode 100644
+--- /dev/null	(date 1710503064906)
++++ b/.idea/workspace.xml	(date 1710503064906)
+@@ -0,0 +1,111 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="AutoImportSettings">
++    <option name="autoReloadType" value="SELECTIVE" />
++  </component>
++  <component name="ChangeListManager">
++    <list default="true" id="d7191883-1665-4614-a209-38bd8bbf7787" name="Changes" comment="">
++      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/config/certificate_pub.crt" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/config/private.key" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/templates/generate_cv.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_cv.html" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
++    </list>
++    <option name="SHOW_DIALOG" value="false" />
++    <option name="HIGHLIGHT_CONFLICTS" value="true" />
++    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
++    <option name="LAST_RESOLUTION" value="IGNORE" />
++  </component>
++  <component name="FileTemplateManagerImpl">
++    <option name="RECENT_TEMPLATES">
++      <list>
++        <option value="Python Script" />
++      </list>
++    </option>
++  </component>
++  <component name="Git.Settings">
++    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
++  </component>
++  <component name="MarkdownSettingsMigration">
++    <option name="stateVersion" value="1" />
++  </component>
++  <component name="ProjectColorInfo">{
++  &quot;associatedIndex&quot;: 2
++}</component>
++  <component name="ProjectId" id="2cag1cA23TIkmCexUjNJ2wS9SCJ" />
++  <component name="ProjectViewState">
++    <option name="hideEmptyMiddlePackages" value="true" />
++    <option name="showLibraryContents" value="true" />
++  </component>
++  <component name="PropertiesComponent"><![CDATA[{
++  "keyToString": {
++    "Python.CV_Improver.executor": "Run",
++    "Python.adiTry.executor": "Run",
++    "RunOnceActivity.OpenProjectViewOnStart": "true",
++    "RunOnceActivity.ShowReadmeOnStart": "true",
++    "git-widget-placeholder": "main",
++    "last_opened_file_path": "/Users/adialgazi/Documents/AI course/FInal Project/CV_Improver",
++    "node.js.detected.package.eslint": "true",
++    "node.js.detected.package.tslint": "true",
++    "node.js.selected.package.eslint": "(autodetect)",
++    "node.js.selected.package.tslint": "(autodetect)",
++    "nodejs_package_manager_path": "npm",
++    "vue.rearranger.settings.migration": "true"
++  }
++}]]></component>
++  <component name="RunManager">
++    <configuration name="CV_Improver" type="PythonConfigurationType" factoryName="Python">
++      <module name="CV_Improver" />
++      <option name="ENV_FILES" value="" />
++      <option name="INTERPRETER_OPTIONS" value="" />
++      <option name="PARENT_ENVS" value="true" />
++      <envs>
++        <env name="PYTHONUNBUFFERED" value="1" />
++      </envs>
++      <option name="SDK_HOME" value="" />
++      <option name="WORKING_DIRECTORY" value="" />
++      <option name="IS_MODULE_SDK" value="false" />
++      <option name="ADD_CONTENT_ROOTS" value="true" />
++      <option name="ADD_SOURCE_ROOTS" value="true" />
++      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
++      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/app.py" />
++      <option name="PARAMETERS" value="" />
++      <option name="SHOW_COMMAND_LINE" value="false" />
++      <option name="EMULATE_TERMINAL" value="false" />
++      <option name="MODULE_MODE" value="false" />
++      <option name="REDIRECT_INPUT" value="false" />
++      <option name="INPUT_FILE" value="" />
++      <method v="2" />
++    </configuration>
++  </component>
++  <component name="SharedIndexes">
++    <attachedChunks>
++      <set>
++        <option value="bundled-python-sdk-50da183f06c8-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13135.95" />
++      </set>
++    </attachedChunks>
++  </component>
++  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
++  <component name="TaskManager">
++    <task active="true" id="Default" summary="Default task">
++      <changelist id="d7191883-1665-4614-a209-38bd8bbf7787" name="Changes" comment="" />
++      <created>1708354891259</created>
++      <option name="number" value="Default" />
++      <option name="presentableId" value="Default" />
++      <updated>1708354891259</updated>
++      <workItem from="1708354892867" duration="1572000" />
++      <workItem from="1708433017655" duration="578000" />
++      <workItem from="1710495582060" duration="40000" />
++      <workItem from="1710495624311" duration="3865000" />
++    </task>
++    <servers />
++  </component>
++  <component name="TypeScriptGeneratedFilesManager">
++    <option name="version" value="3" />
++  </component>
++  <component name="com.intellij.coverage.CoverageDataManagerImpl">
++    <SUITE FILE_PATH="coverage/CV_Improver$CV_Improver.coverage" NAME="CV_Improver Coverage Results" MODIFIED="1710497438192" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
++    <SUITE FILE_PATH="coverage/CV_Improver$adiTry.coverage" NAME="adiTry Coverage Results" MODIFIED="1710496715523" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
++  </component>
++</project>
+\ No newline at end of file
+Index: config/private.key
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/config/private.key b/config/private.key
+new file mode 100644
+--- /dev/null	(date 1710487410000)
++++ b/config/private.key	(date 1710487410000)
+@@ -0,0 +1,24 @@
++-----BEGIN PRIVATE KEY-----
++MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC5zo1B5jzUmVDM0F4AolyWnpU+
++Av9XXpx2URG1a0QOxQ2lWoVMin+lBQv3uhNdxiygwSzAO/C9gfBsgiDZ3lhL3/YJAhxL3+7MJQn+
++QHB6Gx/KlIkHo2HOSaBnflg2TfLMGhkTMwE7dhVDcKb6A1t/wtK/oSYfJLOSXwAVh0pEjDHrSrPY
++ocyWa56NyF915DDUbd324pVz230HBdo2QyxH18Zqs6wpD5aSOsJgtmtXc1DVjuKtTm6SIACMqL6Q
++CFoBt/10s6kqZeEsb7EqJBlXm32iGPwBW6oCj3jltayEN0tnaqXvHZurT6sxlb2qIcSUBiBeyh5q
++zVJfSjhIfIQJAgMBAAECggEAUepzMlNsDBqPmcxfNQ5fnXPKvi0aH42xkyQIl5/zwEM10emHjQge
++YEVKUmvxr8z3zeN8dD+40gOgWGZCT2sMKF9TnAMXMIhIQi4uKq6EKAEfUfOMOhbYvtaM5jO4djCF
++U2BKH8HD0FAt7a6TnvOt+jSNLzi/ksledbB2XAdqQa+AHaKVO9A6USl8Sph0Y6vHM/xMKIw1P+bj
++ganLJbCBxm5c+F9PgGP/L07mS+/iRwrAypphr7OZpQm6XpJRwhgpnb1Ger5mrdhkkXw8RWD3CT/Z
++v9Po8F3Z9vce7mCWVApY/UswTrCY187ylLfjO2VwaiRcKexPAFwYSMBD/BrZxQKBgQDHjc8D5K6h
++IQy8IBA6Aa7dgexabeo/VYDYkWfXVkBVA8TACgarFhA4XyaXV7EWmnz9yxYSQISVNG1FmunRGRnM
++hMSxocbGeUra2W6j+Q8tnohayL0/iqzF1TJReiZyq873HJfrXJ+9O0ejfdfwAxd40wCrCp7brbXN
++Dh9ImY9vLwKBgQDuXUgzj1rlV/lXeN4oMxMt2Gyw3ZdhU2rDtq84Naqdb3iByTKwbjx7JvdOCOdv
++PWjM9squOTpc2Myv7+xgvfKauej41qFG6sbHC5MElTx4KlGnfYHB+OVKXUnSX/Kq3s66K8HoGzTk
++E/mVmjg8LpQsIGLwvbegOfM26fDMJnqyRwKBgGXSVe8GoJRW6MiVE7KFaVRdFtyNeRkX58aZawLV
++X74BTkMu2ngxqdUZt/dBJ3sBGQXmujxV71Cyj48UnHm09RUGKdb5VROwkCFbELlaPARq/+hSxT3G
++5KGNRz+LtFKOl+w/CsVtXZSQyt0BOU2eRjvAbnbX1HcDC+C1dAD3WdjBAoGBAINcaw7nIOulWOdI
++1/2FcDtiuzuZUvSy+PKUuembQcRzixDTZZjvl2szJTUfGRQn3pqeI0JyjWRfoiYPbdA+vfVhITAJ
++cGXZuuQ0z7fF2sZKZCeOtjTEyu/5i1ZhxCVAluLofHtCixpqm7BDhlw8OzI6QuxzUT/+z7dio26O
++gi2/AoGAMabn5GP8ElTHfp0GL1yvY8uvaXWjBVTYLOFtW7SVTi0vZNuZRunm0DNTdyz8JkdqeqV/
++XFfY0UAfmM13AseLOrAiBlEPBNopzNUGGkjD7tBSq5my51TJYgKb8JM0ZttRJbCQXevlUu29Jotk
++vdXP5iov2zLAvDJStXf0k/aj6hQ=
++-----END PRIVATE KEY-----
+\ No newline at end of file
+Index: config/certificate_pub.crt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/config/certificate_pub.crt b/config/certificate_pub.crt
+new file mode 100644
+--- /dev/null	(date 1710487410000)
++++ b/config/certificate_pub.crt	(date 1710487410000)
+@@ -0,0 +1,17 @@
++-----BEGIN CERTIFICATE-----
++MIIDTzCCAjegAwIBAgIJAKnAluCHiWKQMA0GCSqGSIb3DQEBCwUAMGcxCzAJBgNVBAYTAlVTMQsw
++CQYDVQQIDAJDQTEWMBQGA1UEBwwNU2FuIEZyYW5jaXNjbzEOMAwGA1UECgwFQWRvYmUxETAPBgNV
++BAsMCFNlY3VyaXR5MRAwDgYDVQQDDAdDb25zb2xlMB4XDTI0MDMxNTA5MjMyOVoXDTI1MDMxNTA5
++MjMyOVowZzELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAkNBMRYwFAYDVQQHDA1TYW4gRnJhbmNpc2Nv
++MQ4wDAYDVQQKDAVBZG9iZTERMA8GA1UECwwIU2VjdXJpdHkxEDAOBgNVBAMMB0NvbnNvbGUwggEi
++MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC5zo1B5jzUmVDM0F4AolyWnpU+Av9XXpx2URG1
++a0QOxQ2lWoVMin+lBQv3uhNdxiygwSzAO/C9gfBsgiDZ3lhL3/YJAhxL3+7MJQn+QHB6Gx/KlIkH
++o2HOSaBnflg2TfLMGhkTMwE7dhVDcKb6A1t/wtK/oSYfJLOSXwAVh0pEjDHrSrPYocyWa56NyF91
++5DDUbd324pVz230HBdo2QyxH18Zqs6wpD5aSOsJgtmtXc1DVjuKtTm6SIACMqL6QCFoBt/10s6kq
++ZeEsb7EqJBlXm32iGPwBW6oCj3jltayEN0tnaqXvHZurT6sxlb2qIcSUBiBeyh5qzVJfSjhIfIQJ
++AgMBAAEwDQYJKoZIhvcNAQELBQADggEBAIPMtquu2IxcOLZys9Q+7C2MpeYXpbN0CaPHx5BxB80O
++D7+jzbeSbymv7eU4WzY37oTIsLlNe7KgjJuRqB2YOJJNvcd7YKuhELR0bKyp7OpV1Zz1URCuaGt8
++VpkQxahg72VIG26CvHYwkt6wCSuI/9VjHNbCP5k2klJ6J8TIr6mpnvQ1VhNm1YadkcAntj8xrkoE
++DXVfzXGT/zS+k3BsvC4wYX+N3tfvUhGVtqv1rLda+CHIpU1eO8TBNqtvKwWOBJjBIkcnJ2UKiJ9P
++1jDSYFNVdobgRKb3Ug9yicZq+m/DSOAEv5UCEItEIdgqeKhCa7L0lB5lVHhMQGNbFqXLWbY=
++-----END CERTIFICATE-----
+\ No newline at end of file

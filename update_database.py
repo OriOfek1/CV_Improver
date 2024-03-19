@@ -15,7 +15,7 @@ def create_connection(db_file="database.db"):
 
 def insert_applicant(conn, applicant):
     applicant_uuid = uuid.uuid4()
-    sql = ''' INSERT INTO applicants(applicant_uuid,contact_info,professional_summary,photo_base64)
+    sql = ''' INSERT INTO applicants(uuid,contact_info,professional_summary,photo_base64)
               VALUES(?,?,?,?) '''
     applicant_data = (str(applicant_uuid),) + applicant + (None,)
     print("This is the data: ", applicant_data)  # Should show four elements
@@ -76,28 +76,33 @@ def insert_volunteering(conn, volunteering):
 
 def get_applicant(conn, uuid):
     cur = conn.cursor()
-    cur.execute("SELECT * FROM applicants WHERE applicant_uuid=?", (uuid,))
+    cur.execute("SELECT * FROM applicants WHERE uuid=?", (uuid,))
     return cur.fetchone()
 
 
 def get_all_applicant_data(conn, applicant_uuid):
     data = {}
     cur = conn.cursor()
-    cur.execute("SELECT * FROM applicants WHERE applicant_uuid=?", (applicant_uuid,))
+    cur.execute("SELECT * FROM applicants WHERE uuid=?", (applicant_uuid,))
     applicant_data = cur.fetchone()
     if not applicant_data:
         return None
     data['applicant'] = {
         'uuid': applicant_data[0],
-        'contact_info': applicant_data[1],
-        'professional_summary': applicant_data[2],
-        'photo_base64': applicant_data[3],
+        'email': applicant_data[1],
+        'phone_number': applicant_data[2],
+        'professional_summary': applicant_data[3],
+        'full_name': applicant_data[4],
+        'photo_base64': applicant_data[5],
     }
-    cur.execute("SELECT * FROM education WHERE applicant_uuid=?", (applicant_uuid,))
+
+    cur.execute(
+        "SELECT school_name, level, gpa, field_of_study, start_date, end_date FROM education WHERE applicant_uuid=?",
+        (applicant_uuid,))
     data['education'] = cur.fetchall()
     cur.execute("SELECT * FROM projects WHERE applicant_uuid=?", (applicant_uuid,))
     data['projects'] = cur.fetchall()
-    cur.execute("SELECT * FROM work_experience WHERE applicant_uuid=?", (applicant_uuid,))
+    cur.execute("SELECT title, company_name, achievements FROM work_experience WHERE applicant_uuid=?", (applicant_uuid,))
     data['work_experience'] = cur.fetchall()
     cur.execute("SELECT * FROM skills WHERE applicant_uuid=?", (applicant_uuid,))
     data['skills'] = cur.fetchall()
