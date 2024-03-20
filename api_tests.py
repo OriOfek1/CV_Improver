@@ -1,5 +1,6 @@
 import requests
 import json
+import logging
 
 url = 'http://localhost:8080'
 
@@ -70,7 +71,6 @@ def create_applicant(applicant_data):
         print(response.text)
 
 def generate_cl(uuid, description):
-    headers = {'Content-Type': 'application/json'}
     response = requests.post(f"{url}/submit-cover-letter/{uuid}", data={'coverLetterText': description})
     if response.status_code == 200:
         print("Cover letter submitted successfully.")
@@ -80,4 +80,4 @@ def generate_cl(uuid, description):
 
 
 # create_applicant(applicant_data)
-generate_cl('a99388d9-d5da-4d68-a73a-86e763a06c1a', job_details)
+generate_cl('f7e7cdb1-c6e0-4f25-9963-56c08487bab8', job_details)

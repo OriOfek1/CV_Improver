@@ -89,7 +89,7 @@ async def get_manual_signup():
 
 @app.post("/submit-cover-letter/{uuid}")
 async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
-    print('hi')
+    print('in here')
     directory = 'temporary_files'
     if not os.path.exists(directory):
         os.makedirs(directory)

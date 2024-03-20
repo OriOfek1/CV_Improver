@@ -60,6 +60,8 @@ def generate_cover_letter(applicant_data, job_data):
 
 
 def replace_placeholder_in_runs(runs, placeholder, replacement):
+    if replacement is None:
+        replacement = ''
     if placeholder == 'Phone Number':
         combined_text = ''.join(run.text for run in runs)
         placeholder_index = combined_text.find(placeholder)
@@ -148,9 +150,10 @@ def main(job_details, uuid):
     database = "database.db"
     print('in main')
     conn = create_connection(database)
-
+    print(conn)
     if conn is not None:
         applicant_data, email, phone, full_name, title = fetch_applicant_data(uuid, conn)
+        print(applicant_data, email, phone, full_name, title)
         conn.close()
         data_tuple = (email, phone, full_name, title)
         applicant_data_json = json.dumps(applicant_data, indent=4)
