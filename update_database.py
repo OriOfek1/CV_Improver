@@ -109,18 +109,18 @@ def get_all_applicant_data(conn, applicant_uuid):
     }
 
     cur.execute(
-        "SELECT school_name, level, gpa, field_of_study, start_date, end_date FROM education WHERE applicant_uuid=?",
+        "SELECT school_name, level, field_of_study, gpa, start_date, end_date FROM education WHERE applicant_uuid=?",
         (applicant_uuid,))
     data['education'] = cur.fetchall()
     cur.execute("SELECT * FROM projects WHERE applicant_uuid=?", (applicant_uuid,))
     data['projects'] = cur.fetchall()
     cur.execute("SELECT title, company_name, achievements FROM work_experience WHERE applicant_uuid=?", (applicant_uuid,))
     data['work_experience'] = cur.fetchall()
-    cur.execute("SELECT * FROM skills WHERE applicant_uuid=?", (applicant_uuid,))
+    cur.execute("SELECT skill_name, proficiency_level FROM skills WHERE applicant_uuid=?", (applicant_uuid,))
     data['skills'] = cur.fetchall()
-    cur.execute("SELECT * FROM languages WHERE applicant_uuid=?", (applicant_uuid,))
+    cur.execute("SELECT language, proficiency_level FROM languages WHERE applicant_uuid=?", (applicant_uuid,))
     data['languages'] = cur.fetchall()
-    cur.execute("SELECT * FROM volunteer_work WHERE applicant_uuid=?", (applicant_uuid,))
+    cur.execute("SELECT organization, role, details  FROM volunteer_work WHERE applicant_uuid=?", (applicant_uuid,))
     data['volunteering'] = cur.fetchall()
 
     return data

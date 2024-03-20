@@ -102,18 +102,26 @@ async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
         filename=f"Cover_Letter_for_{uuid}.docx")
 
 @app.post("/submit-cv/{uuid}")
-async def submit_cv(uuid: str, coverLetterText: str = Form(...)):
+async def submit_cv(uuid: str, coverLetterText: str = Form(...), templateSelect: str = Form(...)):
     directory = 'temporary_files'
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    # Assume you have a template document for the CV
-    template_document = 'cv_template.docx'
+    # Mapping template selections to actual document filenames
+    # Assume these are the paths to your template documents
+    template_document_map = {
+        'template1': 'cv_template1.docx',
+        'template2': 'cv_template2.docx',
+    }
+    # Use 'template1' as default if no selection is made or if the selected template is not in the map
+    template_document = template_document_map.get(templateSelect, template_document_map['template1'])
 
-    # Create or update the CV for the given UUID
+    # Assuming create_CV is defined elsewhere and correctly imports the template_document
+    # Note: You need to ensure create_CV now accepts template_document as a parameter
     cv_path = create_CV(uuid, coverLetterText, template_document)
 
     # Use the created or updated CV path to return the document
+    # This line assumes cv_path is the full path to the generated CV document
     return FileResponse(cv_path, media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         filename=os.path.basename(cv_path))
 
