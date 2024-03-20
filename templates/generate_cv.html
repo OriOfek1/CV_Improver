@@ -34,6 +34,7 @@
             </div>
             <div id="templatePreview" class="mb-3">
                 <p>Select a template to see a preview here.</p>
+                <picture></picture>
             </div>
             <div class="mb-3">
                 <label for="coverLetterText" class="form-label">Job Description</label>
@@ -47,6 +48,23 @@
             var templatePreview = document.getElementById('templatePreview');
             templatePreview.innerHTML = '<img src="path/to/selected/template/dummy-photo.jpg" alt="Template Preview">';
         });
+        document.getElementById('templateSelect').addEventListener('change', function() {
+        var selectedTemplate = this.value; // Get the value of the selected option
+        var pictureElement = document.getElementById('temp_pic'); // Get the picture element
+
+        // Clear the picture element's content
+        pictureElement.innerHTML = '';
+
+        // Depending on the selected template, set the corresponding image
+        if (selectedTemplate === 'template1') {
+            pictureElement.innerHTML = '<img src="path/to/template1/pic_temp1.jpg" alt="Template 1 Preview">';
+        } else if (selectedTemplate === 'template2') {
+            pictureElement.innerHTML = '<img src="path/to/template2/pic_temp2.jpg" alt="Template 2 Preview">';
+        } else {
+            // If no template is selected or the selected option is the placeholder, you can display a default message or leave it blank
+            pictureElement.innerHTML = '<p>Select a template to see a preview here.</p>';
+        }
+    });
     </script>
 </body>
 </html>
