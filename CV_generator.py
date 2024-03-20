@@ -12,12 +12,8 @@ import re
 
 
 def create_CV(user_id, job_description, template_path):
-    # profile_dict = create_user_profile(user_id)
     profile_dict = create_user_profile(user_id, job_description)
-    # profile_dict = {'Full name': 'Adi Algazi','About me place holder':'i am adi', 'Exp place holder': 'developer', 'email place holder': 'adi@gmail.com'}
-    # Now template_path is passed as a parameter
     update_word_document_with_user_info(template_path, profile_dict)
-    # Return the path of the updated document for further use
     return template_path.replace('.docx', '_updated.docx')
 
 
@@ -28,14 +24,15 @@ def create_user_profile(user_id, job_description):
 
     profile = get_all_applicant_data(conn_DB, user_id)
 
-    user_profile = {'full name': profile['applicant']['full_name'],
+    user_profile = {'Full name': profile['applicant']['full_name'].upper(),
                     'email place holder': profile['applicant']['email'],
                     'phone number place holder': profile['applicant']['phone_number'],
-                    'about me place holder': profile['applicant']['professional_summary'],
+                    'About me place holder': profile['applicant']['professional_summary'],
                     'Exp place holder': profile['work_experience'],
-                    'education place holder': profile['education'],
-                    'skills place holder': profile['skills']}
-
+                    'Education place holder': profile['education'],
+                    'skills place holder': profile['skills'],
+                    'vol place holder': profile['volunteering'],
+                    'lan place holder': profile['languages']}
 
     client = None
     try:
@@ -45,7 +42,8 @@ def create_user_profile(user_id, job_description):
     prompt = (f"""You are a professional recruiter, perfect for helping candidates get their dream jobs.
                      Given the following job description and a dictionary of applicant details, adjust, thicken   
                      and improve the dictionary such that it will highlight the applicants qualities needed for the job 
-                     (without making anything up and you can change only the values, leave the keys the same).
+                     (without making anything up!!! it is very important that you won't add data that is not real 
+                     about the candidate, and you can change only the values, leave the keys exactly the same).
                      Output only the python dictionary, without any explanation or details.
                      <applicant_data>: {user_profile}
                      </applicant_data>
@@ -95,9 +93,9 @@ def update_paragraph(paragraph, user_info):
     """Check if any key in user_info is in the paragraph, and if so, replace it while preserving formatting."""
     for key, value in user_info.items():
         if isinstance(value, list):
-            # Convert list to a string or handle it as needed
-            # Simple example: Join list items with a comma
-            value_str = '\n'.join(['. '.join([str(inner_item) for inner_item in item]) for item in value])
+            # For each inner list, join its items with a comma and prepend with '- '
+            # Then join these strings with '\n' to get the final value_str
+            value_str = '\n'.join(['- ' + '. '.join([str(inner_item) for inner_item in item]) for item in value])
         else:
             value_str = value
 
@@ -105,5 +103,7 @@ def update_paragraph(paragraph, user_info):
         for run in paragraph.runs:
             if key.lower() in run.text.lower():
                 # Replace key with value_str in text while preserving formatting
-                run.text = run.text.lower().replace(key.lower(), value_str)
+                # Making sure not to alter the case of the entire run
+                run.text = run.text.replace(key, value_str, 1)
+
 

@@ -4,33 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d7191883-1665-4614-a209-38bd8bbf7787" name="Changes" comment="updated doc added">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_15_03_2024,_13_45_[Changes]/shelved.patch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_15_03_2024__13_45__Changes_.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_18_03_2024,_14_17_[Changes]/database.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_18_03_2024,_14_17_[Changes]/shelved.patch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_18_03_2024,_14_17_[Changes]1/database.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_18_03_2024,_14_17_[Changes]1/shelved.patch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_18_03_2024,_9_55_[Changes]/database.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_18_03_2024,_9_55_[Changes]/shelved.patch" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_18_03_2024__14_17__Changes_.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_18_03_2024__14_17__Changes_1.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_18_03_2024__9_55__Changes_.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/applicants.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/certificate_pub.crt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/private.key" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cv_template_updated.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/temporary_files/Cover_Letter_for_{{ uuid }}.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/work_experience.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/CV_Improver.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CV_Improver.iml" afterDir="false" />
+    <list default="true" id="d7191883-1665-4614-a209-38bd8bbf7787" name="Changes" comment="api call added and correct dict from db">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CV_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/CV_generator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cover_letter.py" beforeDir="false" afterPath="$PROJECT_DIR$/cover_letter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cv_template.docx" beforeDir="false" afterPath="$PROJECT_DIR$/cv_template.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cv_template.docx" beforeDir="false" afterPath="$PROJECT_DIR$/cv_template1.docx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/database.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/generate_cv.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/generate_cv.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/update_database.py" beforeDir="false" afterPath="$PROJECT_DIR$/update_database.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -126,7 +106,8 @@
       <workItem from="1710495582060" duration="40000" />
       <workItem from="1710495624311" duration="17067000" />
       <workItem from="1710834857209" duration="613000" />
-      <workItem from="1710844892856" duration="7192000" />
+      <workItem from="1710844892856" duration="7430000" />
+      <workItem from="1710884558364" duration="11109000" />
     </task>
     <task id="LOCAL-00001" summary="adis add">
       <option name="closed" value="true" />
@@ -160,7 +141,15 @@
       <option name="project" value="LOCAL" />
       <updated>1710765903469</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="api call added and correct dict from db">
+      <option name="closed" value="true" />
+      <created>1710855439807</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1710855439807</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -170,10 +159,11 @@
     <MESSAGE value="adis add" />
     <MESSAGE value="doc added" />
     <MESSAGE value="updated doc added" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated doc added" />
+    <MESSAGE value="api call added and correct dict from db" />
+    <option name="LAST_COMMIT_MESSAGE" value="api call added and correct dict from db" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/CV_Improver$CV_Improver.coverage" NAME="CV_Improver Coverage Results" MODIFIED="1710855082148" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/CV_Improver$CV_Improver.coverage" NAME="CV_Improver Coverage Results" MODIFIED="1710934823150" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/CV_Improver$adiTry.coverage" NAME="adiTry Coverage Results" MODIFIED="1710496715523" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
