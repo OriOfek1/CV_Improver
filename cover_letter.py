@@ -159,7 +159,7 @@ def main(job_details, uuid):
         applicant_data_json = json.dumps(applicant_data, indent=4)
         cover_letter_text = generate_cover_letter(applicant_data_json, job_details)
 
-        updated_file_path = update_word_template('CL template.docx', data_tuple, cover_letter_text)
+        updated_file_path = update_word_template('static/templates/CL_template.docx', data_tuple, cover_letter_text)
 
         print(f"Updated document saved to: {updated_file_path}")
         return updated_file_path
@@ -168,4 +168,4 @@ def main(job_details, uuid):
 
 if __name__ == "__main__":
     job_details = "Your job details here"
-    something = update_word_template('CL template.docx', ('my email', '123213', 'Ilai :)', 'Software guy'), 'I am cool')
+    something = update_word_template('static/templates/CL_template.docx', ('my email', '123213', 'Ilai :)', 'Software guy'), 'I am cool')

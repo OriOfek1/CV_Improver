@@ -14,9 +14,19 @@
         .container {
             max-width: 960px;
         }
-        #templatePreview img {
-            max-width: 100%;
+        .template-option {
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 5px;
+        }
+        .template-option:checked + label > img {
+            border-color: #007bff;
+        }
+        .template-preview img {
+            width: 100%;
+            max-width: 200px; /* Adjust based on your needs */
             height: auto;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -25,16 +35,14 @@
         <h1>Generate CV</h1>
         <form action="/submit-cv/{{ uuid }}" method="post" enctype="multipart/form-data">
             <div class="mb-3">
-                <label for="templateSelect" class="form-label">Choose a CV Template</label>
-                <select class="form-select" id="templateSelect" name="templateSelect">
-                    <option selected>Choose...</option>
-                    <option value="template1">CV Template 1</option>
-                    <option value="template2">CV Template 2</option>
-                </select>
-            </div>
-            <div id="templatePreview" class="mb-3">
-                <p>Select a template to see a preview here.</p>
-                <picture></picture>
+                <label class="form-label">Choose a CV Template</label>
+                <div class="template-preview">
+                    <input type="radio" id="template1" name="templateSelect" value="template1" class="template-option" hidden>
+                    <label for="template1"><img src="/static/images/pic_temp1.png" alt="CV Template 1"></label>
+
+                    <input type="radio" id="template2" name="templateSelect" value="template2" class="template-option" hidden>
+                    <label for="template2"><img src="/static/images/pic_temp2.png" alt="CV Template 2"></label>
+                </div>
             </div>
             <div class="mb-3">
                 <label for="coverLetterText" class="form-label">Job Description</label>
@@ -43,28 +51,5 @@
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
     </div>
-    <script>
-        document.getElementById('templateSelect').addEventListener('change', function() {
-            var templatePreview = document.getElementById('templatePreview');
-            templatePreview.innerHTML = '<img src="path/to/selected/template/dummy-photo.jpg" alt="Template Preview">';
-        });
-        document.getElementById('templateSelect').addEventListener('change', function() {
-        var selectedTemplate = this.value; // Get the value of the selected option
-        var pictureElement = document.getElementById('temp_pic'); // Get the picture element
-
-        // Clear the picture element's content
-        pictureElement.innerHTML = '';
-
-        // Depending on the selected template, set the corresponding image
-        if (selectedTemplate === 'template1') {
-            pictureElement.innerHTML = '<img src="path/to/template1/pic_temp1.jpg" alt="Template 1 Preview">';
-        } else if (selectedTemplate === 'template2') {
-            pictureElement.innerHTML = '<img src="path/to/template2/pic_temp2.jpg" alt="Template 2 Preview">';
-        } else {
-            // If no template is selected or the selected option is the placeholder, you can display a default message or leave it blank
-            pictureElement.innerHTML = '<p>Select a template to see a preview here.</p>';
-        }
-    });
-    </script>
 </body>
 </html>
