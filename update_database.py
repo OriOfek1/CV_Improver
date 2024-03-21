@@ -111,7 +111,18 @@ def get_all_applicant_data(conn, applicant_uuid):
     cur.execute(
         "SELECT school_name, level, field_of_study, gpa, start_date, end_date FROM education WHERE applicant_uuid=?",
         (applicant_uuid,))
-    data['education'] = cur.fetchall()
+    education_data = []
+    for row in cur.fetchall():
+        modified_row = (
+            row[0],  # school_name
+            row[1],  # level
+            row[2],  # field_of_study
+            f"gpa: {row[3]}" if row[3] else "",  # Add prefix to gpa if not empty
+            f"start date: {row[4]}" if row[4] else "",  # Add prefix to start_date if not empty
+            f"end date: {row[5]}" if row[5] else "",  # Add prefix to end_date if not empty
+        )
+        education_data.append(modified_row)
+    data['education'] = education_data
     cur.execute("SELECT * FROM projects WHERE applicant_uuid=?", (applicant_uuid,))
     data['projects'] = cur.fetchall()
     cur.execute("SELECT title, company_name, achievements FROM work_experience WHERE applicant_uuid=?", (applicant_uuid,))

@@ -111,8 +111,8 @@ async def submit_cv(uuid: str, coverLetterText: str = Form(...), templateSelect:
     # Mapping template selections to actual document filenames
     # Assume these are the paths to your template documents
     template_document_map = {
-        'template1': 'cv_template1.docx',
-        'template2': 'cv_template2.docx',
+        'template1': 'static/templates/cv_template1.docx',
+        'template2': 'static/templates/cv_template2.docx',
     }
     # Use 'template1' as default if no selection is made or if the selected template is not in the map
     template_document = template_document_map.get(templateSelect, template_document_map['template1'])
