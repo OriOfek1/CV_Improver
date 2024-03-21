@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Form, File, UploadFile, Request, Response, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import sqlite3
@@ -17,7 +17,7 @@ from typing import List
 import jinja2
 from fastapi.middleware.cors import CORSMiddleware
 from CV_generator import create_CV
-
+from CV_parser import main as parse_CV
 
 
 app = FastAPI()
@@ -126,7 +126,19 @@ async def submit_cv(uuid: str, coverLetterText: str = Form(...), templateSelect:
     return FileResponse(cv_path, media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         filename=os.path.basename(cv_path))
 
+@app.post("/automatic_signup")
+async def automatic_signup(cv_file: UploadFile = File(...)):
+    try:
+        temp_dir = "temporary_files"
+        os.makedirs(temp_dir, exist_ok=True)
+        cv_file_path = os.path.join(temp_dir, cv_file.filename)
+        with open(cv_file_path, "wb") as buffer:
+            buffer.write(cv_file.file.read())
+        parsed_data = parse_CV(cv_file_path)
+        return JSONResponse(content={"message": "Signup successful!", "parsed_data": parsed_data})
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error during signup: {str(e)}")
 @app.get("/generate-cover-letter/{uuid}", response_class=HTMLResponse)
 async def generate_cover_letter(request: Request, uuid: str):
     return templates.TemplateResponse("generate_cover_letter.html", {"request": request, "uuid": uuid})

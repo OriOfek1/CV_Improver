@@ -2,7 +2,10 @@ import requests
 import json
 from pypdf import PdfReader
 from openai import OpenAI
+import update_database
 import ast
+import re
+
 
 url = 'http://localhost:8080'
 FORMAT = {
@@ -43,6 +46,7 @@ def output_format(text):
     print("applicant_data:")
     print(applicant_data)
 
+    applicant_data = re.sub(r'([a-zA-Z0-9])\'([a-zA-Z0-9])', r'\1\2', applicant_data)
     applicant_data = ast.literal_eval(applicant_data)
 
     for key in applicant_data:
@@ -51,20 +55,62 @@ def output_format(text):
     return applicant_data
 
 
+def insert_data_to_database(applicant_data, education, projects, work_experience,
+                            skills, languages, volunteering):
+    conn = update_database.create_connection("database.db")
+
+    education = json.loads(education)
+    projects = json.loads(projects)
+    work_experience = json.loads(work_experience)
+    skills = json.loads(skills)
+    languages = json.loads(languages)
+    volunteering = json.loads(volunteering)
+
+    # Insert applicant data
+    applicant_uuid = update_database.insert_applicant(conn, applicant_data)
+
+    # Insert education data
+    for edu in education:
+        update_database.insert_education(conn, (applicant_uuid,) + tuple(edu.values()))
+
+    # Insert work experience data
+    for work in work_experience:
+        update_database.insert_work_experience(conn, (applicant_uuid,) + tuple(work.values()))
+
+    # Insert project data
+    for project in projects:
+        update_database.insert_project(conn, (applicant_uuid,) + tuple(project.values()))
+
+    # Insert skills data
+    for skill in skills:
+        update_database.insert_skills(conn, (applicant_uuid,) + tuple(skill.values()))
+
+    # Insert languages data
+    for language in languages:
+        update_database.insert_language(conn, (applicant_uuid,) + tuple(language.values()))
+
+    # Insert volunteering data
+    for vol in volunteering:
+        update_database.insert_volunteering(conn, (applicant_uuid,) + tuple(vol.values()))
+
+    return {"success": True, "message": "Data submitted successfully", "applicant_uuid": str(applicant_uuid)}
+
+
 def api_call(applicant_data):
-    headers = {'Content-Type': 'application/json'}
-    response = requests.post(url + '/submit_form', headers=headers, data=json.dumps(applicant_data))
-    if response.status_code == 200:
+    response = insert_data_to_database(**applicant_data)
+    if response["success"]:
         print("Submission successful.")
-        print(response.json())
     else:
-        print(f"Submission failed with status code: {response.status_code}")
-        print(response.text)
+        print(f"Submission failed with message: {response['message']}")
+    return response
 
 def main(cv):
     text = extract_text_from_cv(cv)
     applicant_data = output_format(text)
-    api_call(applicant_data)
+    result = api_call(applicant_data)
+    print('Affan Hillergrand')
+    return result
 
 if __name__ == "__main__":
-    main('static/CV/Sharon Shechter CV.pdf')
+    # main('static/CV/Sharon Shechter CV.pdf')
+    main('C:/Users/ilai.avron/Downloads/Ilai_Av_Ron_CV_2_pdfrest_compressed-pdf.pdf')
