@@ -103,6 +103,7 @@ async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
 
 @app.post("/submit-cv/{uuid}")
 async def submit_cv(uuid: str, coverLetterText: str = Form(...), templateSelect: str = Form(...)):
+    print(templateSelect)
     directory = 'temporary_files'
     if not os.path.exists(directory):
         os.makedirs(directory)
