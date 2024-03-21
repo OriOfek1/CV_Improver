@@ -93,9 +93,14 @@ def update_paragraph(paragraph, user_info):
     """Check if any key in user_info is in the paragraph, and if so, replace it while preserving formatting."""
     for key, value in user_info.items():
         if isinstance(value, list):
-            # For each inner list, join its items with a comma and prepend with '- '
-            # Then join these strings with '\n' to get the final value_str
-            value_str = '\n'.join(['- ' + '. '.join([str(inner_item) for inner_item in item]) for item in value])
+            # For each inner list, join its non-empty items with a period
+            # Append a period at the end of the final string for each list
+            # Then join these strings with '\n- ' to get the final value_str
+            value_str = '\n'.join([
+                '- ' + '. '.join([str(inner_item) for inner_item in item if str(inner_item).strip()]) + '.'
+                if any(str(inner_item).strip() for inner_item in item) else ''  # Add a period at the end if the list is not empty
+                for item in value
+            ]).rstrip('\n')  # Remove any trailing newline characters
         else:
             value_str = value
 
@@ -105,5 +110,7 @@ def update_paragraph(paragraph, user_info):
                 # Replace key with value_str in text while preserving formatting
                 # Making sure not to alter the case of the entire run
                 run.text = run.text.replace(key, value_str, 1)
+
+
 
 
