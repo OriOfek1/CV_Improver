@@ -35,7 +35,7 @@ def create_user_profile(user_id, job_description):
 
     client = None
     try:
-        client = OpenAI(api_key='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')
+        client = OpenAI(api_key='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')
     except Exception as e:
         print(str(e))
     prompt = (f"""You are a professional recruiter, perfect for helping candidates get their dream jobs.
