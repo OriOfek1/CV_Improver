@@ -5,6 +5,13 @@ from openai import OpenAI
 import update_database
 import ast
 import re
+import logging
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
+logger = logging.getLogger(__name__)
 
 
 url = 'http://localhost:8080'
@@ -27,9 +34,9 @@ def extract_text_from_cv(cv):
 def output_format(text):
     client = None
     try:
-        client = OpenAI(api_key='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')
+        client = OpenAI(api_key='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')
     except Exception as e:
-        print(str(e))
+        logger(f'Error while connecting to OpenAI: {str(e)}')
     prompt = (f"""You are a professional recruiter, perfect for helping candidates get their dream jobs.
                      Given the following text parsed from an applicant's CV, rewrite it in a format suitable for
                      adding it to our database. It is very important that you won't add data that is not real
@@ -106,5 +113,5 @@ def main(cv):
 
 if __name__ == "__main__":
     pass
-    # main('static/CV/Sharon Shechter CV.pdf')
+    main('static/CV/Sharon Shechter CV.pdf')
     # main('C:/Users/ilai.avron/Downloads/Ilai_Av_Ron_CV_2_pdfrest_compressed-pdf.pdf')
