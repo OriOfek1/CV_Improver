@@ -8,7 +8,6 @@ import json
 import update_database, create_database
 from pydantic import BaseModel
 import os
-# from docx import Document
 import cover_letter
 import logging
 import base64
