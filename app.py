@@ -18,7 +18,13 @@ import jinja2
 from fastapi.middleware.cors import CORSMiddleware
 from CV_generator import create_CV
 from CV_parser import main as parse_CV
+import logging
 
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 app.add_middleware(
@@ -60,7 +66,7 @@ def get_db_connection():
     try:
         conn = sqlite3.connect(DATABASE)
     except Error as e:
-        print(e)
+        logger.error(e)
     return conn
 
 @app.get("/", response_class=HTMLResponse)
@@ -89,7 +95,7 @@ async def get_manual_signup():
 
 @app.post("/submit-cover-letter/{uuid}")
 async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
-    print('in here')
+    logger.info('Creating cover letter')
     directory = 'temporary_files'
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -103,26 +109,19 @@ async def submit_cover_letter(uuid: str, coverLetterText: str = Form(...)):
 
 @app.post("/submit-cv/{uuid}")
 async def submit_cv(uuid: str, coverLetterText: str = Form(...), templateSelect: str = Form(...)):
-    print(templateSelect)
+    logger.info('Selected template is: %s', templateSelect)
     directory = 'temporary_files'
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    # Mapping template selections to actual document filenames
-    # Assume these are the paths to your template documents
     template_document_map = {
         'template1': 'static/templates/cv_template1.docx',
         'template2': 'static/templates/cv_template2.docx',
     }
-    # Use 'template1' as default if no selection is made or if the selected template is not in the map
     template_document = template_document_map.get(templateSelect, template_document_map['template1'])
 
-    # Assuming create_CV is defined elsewhere and correctly imports the template_document
-    # Note: You need to ensure create_CV now accepts template_document as a parameter
     cv_path = create_CV(uuid, coverLetterText, template_document)
 
-    # Use the created or updated CV path to return the document
-    # This line assumes cv_path is the full path to the generated CV document
     return FileResponse(cv_path, media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         filename=os.path.basename(cv_path))
 
@@ -158,7 +157,7 @@ class SubmitFormSchema(BaseModel):
 
 @app.post("/submit_form")
 async def submit_form(body: SubmitFormSchema):
-    print(body)
+    logger.info('Manual creation with this data: \n %s', body)
     applicant_data = json.loads(body.applicant_data)
     education_data = json.loads(body.education)
     projects_data = json.loads(body.projects)
@@ -167,13 +166,7 @@ async def submit_form(body: SubmitFormSchema):
     languages_data = json.loads(body.languages)
     volunteering_data = json.loads(body.volunteering)
 
-    print(applicant_data)
-    print(education_data)
-    print(projects_data)
-    print(work_experience_data)
-    print(skills_data)
-    print(languages_data)
-    print(volunteering_data)
+    # logger.info((applicant_data)
 
     conn = update_database.create_connection("database.db")
 
@@ -210,7 +203,7 @@ async def edit_data(uuid: str):
 
 @app.get("/dashboard/{uuid}", response_class=HTMLResponse)
 async def dashboard(request: Request, uuid: str):
-    print(uuid)
+    logger.info('Accessing dashboard for %s', uuid)
     conn = get_db_connection()
     if conn:
         applicant = update_database.get_applicant(conn, uuid)

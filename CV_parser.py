@@ -66,30 +66,23 @@ def insert_data_to_database(applicant_data, education, projects, work_experience
     languages = json.loads(languages)
     volunteering = json.loads(volunteering)
 
-    # Insert applicant data
     applicant_uuid = update_database.insert_applicant(conn, applicant_data)
 
-    # Insert education data
     for edu in education:
         update_database.insert_education(conn, (applicant_uuid,) + tuple(edu.values()))
 
-    # Insert work experience data
     for work in work_experience:
         update_database.insert_work_experience(conn, (applicant_uuid,) + tuple(work.values()))
 
-    # Insert project data
     for project in projects:
         update_database.insert_project(conn, (applicant_uuid,) + tuple(project.values()))
 
-    # Insert skills data
     for skill in skills:
         update_database.insert_skills(conn, (applicant_uuid,) + tuple(skill.values()))
 
-    # Insert languages data
     for language in languages:
         update_database.insert_language(conn, (applicant_uuid,) + tuple(language.values()))
 
-    # Insert volunteering data
     for vol in volunteering:
         update_database.insert_volunteering(conn, (applicant_uuid,) + tuple(vol.values()))
 
@@ -112,5 +105,6 @@ def main(cv):
     return result
 
 if __name__ == "__main__":
+    pass
     # main('static/CV/Sharon Shechter CV.pdf')
-    main('C:/Users/ilai.avron/Downloads/Ilai_Av_Ron_CV_2_pdfrest_compressed-pdf.pdf')
+    # main('C:/Users/ilai.avron/Downloads/Ilai_Av_Ron_CV_2_pdfrest_compressed-pdf.pdf')

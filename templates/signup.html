@@ -28,7 +28,6 @@
             max-width: 960px;
             color: #6c757d;
         }
-        /* Add styles for the loading message and the success/error messages */
         #loadingMessage {
             display: none;
         }
@@ -82,7 +81,7 @@
 
     fetch('/automatic_signup', {
         method: 'POST',
-        body: formData, // Ensure this is the only content related header being set
+        body: formData,
     })
     .then(response => response.json())
     .then(data => {

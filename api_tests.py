@@ -79,5 +79,4 @@ def generate_cl(uuid, description):
         print("Response text:", response.text)
 
 
-# create_applicant(applicant_data)
 generate_cl('f7e7cdb1-c6e0-4f25-9963-56c08487bab8', job_details)
