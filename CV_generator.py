@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
 from starlette.responses import HTMLResponse
 import sqlite3
-from docx import Document
+# from docx import Document
 from update_database import get_all_applicant_data
 import openai
 from openai import OpenAI
@@ -61,8 +61,8 @@ def create_user_profile(user_id, job_description):
     return ai_output
 
 def update_word_document_with_user_info(doc_path, user_info):
-    doc = Document(doc_path)
-
+    # doc = Document(doc_path)
+    doc = None
     for paragraph in doc.paragraphs:
         update_paragraph(paragraph, user_info)
 

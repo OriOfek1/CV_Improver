@@ -1,7 +1,7 @@
 import sqlite3
 import json
 from datetime import datetime
-from docx import Document
+# from docx import Document
 from create_database import create_connection
 from openai import OpenAI
 
@@ -113,8 +113,8 @@ def replace_text_in_paragraph(paragraph, key, value):
 
 def update_word_template(file_path, contact_tuple, cover_letter_text):
     # Load the Word document
-    doc = Document(file_path)
-
+    # doc = Document(file_path)
+    doc = None
     today_date = datetime.today().strftime('%d %b, %Y')
 
     # Dictionary to map placeholders to their respective data
