@@ -66,15 +66,13 @@ def replace_placeholder_in_runs(runs, placeholder, replacement):
         placeholder_index = combined_text.find(placeholder)
 
         if placeholder_index == -1:
-            return  # Placeholder not found in the combined text
+            return
 
         before_placeholder = combined_text[:placeholder_index]
         after_placeholder = combined_text[placeholder_index + len(placeholder):]
 
-        # Reset the combined text with the replacement
         new_combined_text = before_placeholder + replacement + after_placeholder
 
-        # Now, distribute this new_combined_text back into the runs
         current_index = 0
         for run in runs:
             run_text_length = len(run.text)
@@ -84,7 +82,6 @@ def replace_placeholder_in_runs(runs, placeholder, replacement):
     else:
         combined_text = ''.join(run.text for run in runs)
         if placeholder in combined_text:
-            # Find start and end run indexes for the placeholder
             start_index = combined_text.find(placeholder)
             end_index = start_index + len(placeholder)
 
@@ -92,12 +89,10 @@ def replace_placeholder_in_runs(runs, placeholder, replacement):
             for run in runs:
                 run_end_index = current_index + len(run.text)
 
-                # Check if this run contains part of the placeholder
                 if start_index < run_end_index and end_index > current_index:
                     part_to_replace = combined_text[start_index:end_index]
                     run.text = run.text.replace(part_to_replace, replacement, 1)
 
-                    # Adjust indices for the replaced text
                     offset = len(replacement) - len(part_to_replace)
                     start_index += offset
                     end_index += offset
@@ -107,16 +102,14 @@ def replace_placeholder_in_runs(runs, placeholder, replacement):
 
 def replace_text_in_paragraph(paragraph, key, value):
     if key in paragraph.text:
-        print(f"Found: {key}")  # Debug print
+        print(f"Found: {key}")
         replace_placeholder_in_runs(paragraph.runs, key, value)
 
 def update_word_template(file_path, contact_tuple, cover_letter_text):
-    # Load the Word document
     doc = Document(file_path)
 
     today_date = datetime.today().strftime('%d %b, %Y')
 
-    # Dictionary to map placeholders to their respective data
     replacements = {
         "Title": contact_tuple[3],
         "Full Name": contact_tuple[2],  # Assuming index 2 is Full Name
@@ -126,12 +119,10 @@ def update_word_template(file_path, contact_tuple, cover_letter_text):
         "Date": today_date  # Placeholder for today's date
     }
 
-    # Replace placeholders in paragraphs
     for paragraph in doc.paragraphs:
         for key, value in replacements.items():
             replace_text_in_paragraph(paragraph, key, value)
 
-    # Replace placeholders in table cells
     for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
@@ -139,7 +130,6 @@ def update_word_template(file_path, contact_tuple, cover_letter_text):
                     for key, value in replacements.items():
                         replace_text_in_paragraph(paragraph, key, value)
 
-    # Save the modified document
     new_file_path = "temporary_files/modified_CL_template.docx"
     doc.save(new_file_path)
     return new_file_path

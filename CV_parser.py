@@ -50,8 +50,8 @@ def output_format(text):
         model="gpt-3.5-turbo"
     )
     applicant_data = chat_completion.choices[0].message.content
-    print("applicant_data:")
-    print(applicant_data)
+    # logger("applicant_data:")
+    # logger(applicant_data)
 
     applicant_data = re.sub(r'([a-zA-Z0-9])\'([a-zA-Z0-9])', r'\1\2', applicant_data)
     applicant_data = ast.literal_eval(applicant_data)
@@ -108,7 +108,6 @@ def main(cv):
     text = extract_text_from_cv(cv)
     applicant_data = output_format(text)
     result = api_call(applicant_data)
-    print('Affan Hillergrand')
     return result
 
 if __name__ == "__main__":

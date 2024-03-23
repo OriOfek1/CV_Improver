@@ -41,7 +41,6 @@
 <body>
     <div class="container">
         <form id="signupForm">
-            <!-- Basic Information -->
             <div class="section active" id="basicInformation">
                 <h2>Basic Information</h2>
                 <input type="text" name="first_name" placeholder="First Name" required>
@@ -53,39 +52,32 @@
                 <input type="file" name="photo" accept="image/*">
             </div>
 
-            <!-- Projects -->
             <div class="section" id="projects">
                 <h2>Projects</h2>
                 <div id="projectsContainer">
-                    <!-- Dynamic Project Fields Here -->
                 </div>
                 <button type="button" class="btn btn-primary" onclick="addProjectField()">Add Project</button>
             </div>
 
-            <!-- Education -->
             <div class="section" id="education">
                 <h2>Education</h2>
-                <div id="educationContainer"> <!-- Adjusted the container ID -->
-                    <!-- Dynamic Education Fields Here -->
+                <div id="educationContainer">
                 </div>
                 <button type="button" class="btn btn-primary" onclick="addEducationField()">Add Education</button>
             </div>
 
-            <!-- Languages -->
             <div class="section" id="languages">
                 <h2>Languages</h2>
                 <div id="languagesContainer"></div>
                 <button type="button" class="btn btn-primary" onclick="addLanguageField()">Add Language</button>
             </div>
 
-            <!-- Skills -->
             <div class="section" id="skills">
                 <h2>Skills</h2>
                 <div id="skillsContainer"></div>
                 <button type="button" class="btn btn-primary" onclick="addSkillField()">Add Skill</button>
             </div>
 
-            <!-- Work Experience -->
             <div class="section" id="workExperience">
                 <h2>Work Experience</h2>
                 <div id="workExperienceContainer">
@@ -220,10 +212,8 @@
                     });
                     if (response.ok) {
                         const jsonResponse = await response.json();
-                        // Check if the submission was successful and the UUID is present
                         if (jsonResponse.success && jsonResponse.applicant_uuid) {
                             alert(`This is your UUID, don't forget it: ${jsonResponse.applicant_uuid}`);
-                            // Redirect the user to the dashboard page for the newly created applicant
                             window.location.href = `/dashboard/${jsonResponse.applicant_uuid}`;
                         } else {
                             alert('Submission failed: ' + jsonResponse.message);

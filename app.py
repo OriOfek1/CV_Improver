@@ -133,8 +133,8 @@ async def automatic_signup(cv_file: UploadFile = File(...)):
         cv_file_path = os.path.join(temp_dir, cv_file.filename)
         with open(cv_file_path, "wb") as buffer:
             buffer.write(cv_file.file.read())
-        parsed_data = parse_CV(cv_file_path)
-        return JSONResponse(content={"message": "Signup successful!", "parsed_data": parsed_data})
+        result = parse_CV(cv_file_path)
+        return JSONResponse(content={"message": "Signup successful!", "applicant_uuid": result["applicant_uuid"]})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error during signup: {str(e)}")
