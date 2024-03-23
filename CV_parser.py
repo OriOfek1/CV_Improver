@@ -37,9 +37,9 @@ def extract_text_from_cv(cv):
 def output_format(text):
     client = None
     try:
-        client = OpenAI(api_key)
+        client = OpenAI(api_key=api_key)
     except Exception as e:
-        logger(f'Error while connecting to OpenAI: {str(e)}')
+        print(f'Error while connecting to OpenAI: {str(e)}')
     prompt = (f"""You are a professional recruiter, perfect for helping candidates get their dream jobs.
                      Given the following text parsed from an applicant's CV, rewrite it in a format suitable for
                      adding it to our database. It is very important that you won't add data that is not real
