@@ -52,13 +52,16 @@ def create_user_profile(user_id, job_description):
         messages=[{"role": "user", "content": prompt}],
         model="gpt-3.5-turbo"
     )
-    ai_output = ast.literal_eval(chat_completion.choices[0].message.content)
-    print("ai output:")
-    print(ai_output)
+    applicant_data = chat_completion.choices[0].message.content
+
+    if isinstance(applicant_data, str):
+        applicant_data = re.sub(r'([a-zA-Z0-9])\'([a-zA-Z0-9])', r'\1\2', applicant_data)
+
+    applicant_data = ast.literal_eval(applicant_data)
 
     conn_DB.close()
 
-    return ai_output
+    return applicant_data
 
 def update_word_document_with_user_info(doc_path, user_info):
     doc = Document(doc_path)

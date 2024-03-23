@@ -2,8 +2,14 @@ import requests
 import json
 import logging
 import update_database
+import os
+from CV_generator import create_CV
+from unittest.mock import patch
+from CV_generator import create_user_profile
 
-url = 'https://cvimporver.azurewebsites.net/'
+test_id = '6f6bb790-03a1-418a-80cf-1aaaa2e194b0'
+url = 'http://localhost:8000/'
+#url = 'https://cvimporver.azurewebsites.net/'
 
 applicant_data = {
   "applicant_data": "{\"full_name\": \"Kavid Dalmanson\", \"email\": \"something@somewhere.com\", \"phone\": \"123-456-7890\", \"professional_summary\": \"Experienced software developer with a strong background in computer science and a passion for building scalable web applications.\", \"title\": \"Software Developer\"}",
@@ -95,7 +101,85 @@ def test_get_applicant_data(uuid):
         print(f"Failed to fetch data. Status code: {response.status_code}")
         print("Response text:", response.text)
 
+
+def test_create_CV():
+    template_path = "static/templates/cv_template1.docx"
+    expected_output_path = "static/templates/cv_template1_updated.docx"
+
+    output_path = create_CV(test_id, job_details, template_path)
+    print("output path: ")
+    print(output_path)
+    assert output_path == expected_output_path
+    assert os.path.exists(expected_output_path)
+
+    # Cleanup
+    os.remove(expected_output_path)
+
+
+@patch('CV_generator.get_all_applicant_data')
+def test_create_user_profile(mock_get_data):
+    mock_get_data.return_value = {
+        "applicant": {
+            "full_name": "Kavid Dalmanson",
+            "email": "something@somewhere.com",
+            "phone_number": "123-456-7890",
+            "professional_summary": "Experienced software developer with a strong background in computer science and a passion for building scalable web applications.",
+            "title": "Software Developer"
+        },
+        "education": [{
+            "school_name": "Tech University",
+            "level": "BSc",
+            "start_date": "2014-09-01",
+            "end_date": "2018-06-30",
+            "gpa": 3.8,
+            "field_of_study": "Computer Science",
+            "achievements": "Graduated summa cum laude",
+            "extra_notes": "Participated in a senior project that won the university's innovation award."
+        }],
+        "projects": [{
+            "project_name": "Project Alpha",
+            "project_description": "A web application for real-time data analysis.",
+            "extra_notes": "Used technologies include React, Node.js, and PostgreSQL."
+        }],
+        "work_experience": [{
+            "title": "Senior Software Developer",
+            "company_name": "Innovatech Solutions",
+            "achievements": "Led a team of developers in creating a multi-platform application.",
+            "extra_notes": "Application increased company revenue by 20% within the first year."
+        }],
+        "skills": [{
+            "name": "JavaScript",
+            "level": "Advanced"
+        }, {
+            "name": "Python",
+            "level": "Intermediate"
+        }],
+        "languages": [{
+            "name": "English",
+            "level": "Fluent"
+        }, {
+            "name": "Spanish",
+            "level": "Intermediate"
+        }],
+        "volunteering": [{
+            "organization": "Code for Good",
+            "role": "Volunteer Mentor",
+            "details": "Mentored high school students in software development projects for non-profits."
+        }]
+    }
+
+    # Mock the OpenAI API response if necessary
+
+    profile_dict = create_user_profile(test_id, job_details)
+    print("profile dict: ")
+    print(profile_dict)
+    assert 'Full name' in profile_dict
+    assert profile_dict['Full name'] == 'KAVID DALMANSON'
+    assert 'email place holder' in profile_dict
+
 # generate_cl('f7e7cdb1-c6e0-4f25-9963-56c08487bab8', job_details)
 # create_applicant(applicant_data)
 # print(update_database.get_all_applicant_data(update_database.create_connection(), '6b239e2b-1003-4fdf-aca1-a518abff6286'))
-print(test_get_applicant_data('6f6bb790-03a1-418a-80cf-1aaaa2e194b0'))
+print(test_get_applicant_data(test_id))
+test_create_CV()
+test_create_user_profile()
