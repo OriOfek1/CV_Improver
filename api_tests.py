@@ -4,13 +4,21 @@ import logging
 import update_database
 import os
 from CV_generator import create_CV
-from unittest.mock import patch
 from CV_generator import create_user_profile
+import logging
+import unittest
+import requests_mock
 
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
+logger = logging.getLogger(__name__)
 
 test_id = '6f6bb790-03a1-418a-80cf-1aaaa2e194b0'
 url = 'http://localhost:8000'
-#url = 'https://cvimporver.azurewebsites.net/'
+# url = 'https://cvimporver.azurewebsites.net'
 
 applicant_data = {
   "applicant_data": "{\"full_name\": \"Kavid Dalmanson\", \"email\": \"something@somewhere.com\", \"phone\": \"123-456-7890\", \"professional_summary\": \"Experienced software developer with a strong background in computer science and a passion for building scalable web applications.\", \"title\": \"Software Developer\"}",
@@ -71,12 +79,12 @@ Experience with message brokers and data/ stream processing (Kafka, RabbitMQ)
 def create_applicant(applicant_data):
     headers = {'Content-Type': 'application/json'}
     response = requests.post(url+'/submit_form', headers=headers, data=json.dumps(applicant_data))
-    if response.status_code == 200:
-        print("Submission successful.")
-        print(response.json())
-    else:
-        print(f"Submission failed with status code: {response.status_code}")
-        print(response.text)
+    return response
+
+def test_create_applicant(applicant_data=applicant_data):
+    response = create_applicant(applicant_data)
+    print(response)
+    assert response.status_code == 200
 
 def generate_cl(uuid, description, save_path='downloaded_cover_letter.docx'):
     response = requests.post(f"{url}/submit-cover-letter/{uuid}", data={'coverLetterText': description})
@@ -84,10 +92,13 @@ def generate_cl(uuid, description, save_path='downloaded_cover_letter.docx'):
         print("Cover letter submitted successfully.")
         with open(save_path, 'wb') as f:
             f.write(response.content)
-        print(f"File saved as {save_path}")
+        return True
     else:
         print(f"Failed to submit cover letter. Status code: {response.status_code}")
-        print("Response text:", response.text)
+        return False
+
+def test_generate_cl(uuid='6f6bb790-03a1-418a-80cf-1aaaa2e194b0', description=job_details):
+    assert generate_cl(uuid, job_details)
 
 
 def test_get_applicant_data(uuid):
@@ -95,11 +106,11 @@ def test_get_applicant_data(uuid):
     response = requests.get(url + '/get_applicant_data', params=params)
 
     if response.status_code == 200:
-        print("Data fetched successfully.")
-        print(response.json())
+        # print("Data fetched successfully.")
+        return True
     else:
-        print(f"Failed to fetch data. Status code: {response.status_code}")
-        print("Response text:", response.text)
+        # print(f"Failed to fetch data. Status code: {response.status_code}")
+        return False
 
 
 def test_create_CV():
@@ -113,7 +124,6 @@ def test_create_CV():
     assert os.path.exists(expected_output_path)
 
     os.remove(expected_output_path)
-
 
 
 def simulate_submit_cv(uuid, job_description, template_select):
@@ -136,16 +146,10 @@ def simulate_submit_cv(uuid, job_description, template_select):
         print("Response text:", response.text)
 
 
-def simulate_login(uuid, url='http://localhost:8000'):
+def simulate_login(uuid):
     form_data = {'uuid': uuid}
     response = requests.post(url + '/login', data=form_data, allow_redirects=True)
-
-    if response.history:
-        print("Redirected from login.")
-
-    print(f"Final URL: {response.url}")
-
-    if response.url == url + '/login?error=UUID%20not%20found':
+    if 'error' in response.url:
         return "no applicant found"
     elif response.status_code == 200:
         return "Login and redirect successful."
@@ -157,5 +161,6 @@ def simulate_login(uuid, url='http://localhost:8000'):
 # create_applicant(applicant_data)
 # print(update_database.get_all_applicant_data(update_database.create_connection(), '6b239e2b-1003-4fdf-aca1-a518abff6286'))
 # print(test_get_applicant_data(test_id))
-# simulate_submit_cv('f7e7cdb1-c6e0-4f25-9963-56c08487bab80', job_details, 'template1')
-simulate_login('123')
+# simulate_submit_cv('fake_uuid', job_details, 'template1')
+# print(simulate_login('f7e7cdb1-c6e0-4f25-9963-56c08487bab8'))
+
