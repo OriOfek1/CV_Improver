@@ -196,11 +196,6 @@ async def submit_form(body: SubmitFormSchema):
 async def post_login(uuid: str = Form(...)):
     return RedirectResponse(url=f"/dashboard/{uuid}", status_code=303)
 
-@app.post("/edit_data/{uuid}", response_class=HTMLResponse)
-async def edit_data(uuid: str):
-    user_data = update_database.get_all_applicant_data(uuid)
-    # COMPLETE ILAI :)))
-
 @app.get("/dashboard/{uuid}", response_class=HTMLResponse)
 async def dashboard(request: Request, uuid: str):
     logger.info('Accessing dashboard for %s', uuid)
@@ -218,6 +213,23 @@ async def dashboard(request: Request, uuid: str):
             return RedirectResponse(url="/login?error=UUID not found", status_code=303)
     else:
         return RedirectResponse(url="/login?error=Database connection error", status_code=303)
+
+@app.get("/get_applicant_data")
+async def get_applicant_data(uuid: str):
+    try:
+        conn = update_database.create_connection()
+        if conn is None:
+            raise HTTPException(status_code=500, detail="Failed to connect to the database.")
+        data = cover_letter.fetch_applicant_data(uuid, conn)
+        if data is None:
+            raise HTTPException(status_code=404, detail="Applicant data not found.")
+        return data
+    except Error as e:
+        logging.error(f"Database error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
 
 
 if __name__ == "__main__":

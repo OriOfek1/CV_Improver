@@ -6,7 +6,6 @@ from create_database import create_connection
 from openai import OpenAI
 
 
-
 def fetch_applicant_data(uuid, conn):
     tables = [
         "applicants", "education", "projects", "work_experience",
