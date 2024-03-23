@@ -6,6 +6,9 @@ import update_database
 import ast
 import re
 import logging
+import os
+
+api_key = os.getenv('OpenAI_Key')
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -34,7 +37,7 @@ def extract_text_from_cv(cv):
 def output_format(text):
     client = None
     try:
-        client = OpenAI(api_key='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')
+        client = OpenAI(api_key)
     except Exception as e:
         logger(f'Error while connecting to OpenAI: {str(e)}')
     prompt = (f"""You are a professional recruiter, perfect for helping candidates get their dream jobs.

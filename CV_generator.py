@@ -9,7 +9,9 @@ from openai import OpenAI
 import ast
 import sqlite3
 import re
+import os
 
+api_key = os.getenv('OpenAI_Key')
 
 def create_CV(user_id, job_description, template_path):
     profile_dict = create_user_profile(user_id, job_description)
@@ -35,7 +37,7 @@ def create_user_profile(user_id, job_description):
 
     client = None
     try:
-        client = OpenAI(api_key='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')
+        client = OpenAI(api_key)
     except Exception as e:
         print(str(e))
     prompt = (f"""You are a professional recruiter, perfect for helping candidates get their dream jobs.
