@@ -112,11 +112,11 @@ def update_word_template(file_path, contact_tuple, cover_letter_text):
 
     replacements = {
         "Title": contact_tuple[3],
-        "Full Name": contact_tuple[2],  # Assuming index 2 is Full Name
-        "Phone Number": contact_tuple[1],  # Assuming index 1 is Phone Number
-        "Email": contact_tuple[0],  # Assuming index 0 is Email
-        "Text": cover_letter_text,  # Cover letter text to replace 'Text' placeholder
-        "Date": today_date  # Placeholder for today's date
+        "Full Name": contact_tuple[2],
+        "Phone Number": contact_tuple[1],
+        "Email": contact_tuple[0],
+        "Text": cover_letter_text,
+        "Date": today_date
     }
 
     for paragraph in doc.paragraphs:

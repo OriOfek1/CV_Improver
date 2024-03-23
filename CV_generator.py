@@ -102,6 +102,18 @@ def update_paragraph(paragraph, user_info):
             if key.lower() in run.text.lower():
                 run.text = run.text.replace(key, value_str, 1)
 
+    def test_create_CV():
+        template_path = "static/templates/cv_template1.docx"
+        expected_output_path = "static/templates/cv_template1_updated.docx"
+
+        output_path = create_CV(test_id, job_details, template_path)
+        print("output path: ")
+        print(output_path)
+        assert output_path == expected_output_path
+        assert os.path.exists(expected_output_path)
+
+        os.remove(expected_output_path)
+
 
 
 

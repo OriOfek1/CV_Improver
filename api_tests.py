@@ -7,8 +7,9 @@ from CV_generator import create_CV
 from unittest.mock import patch
 from CV_generator import create_user_profile
 
+
 test_id = '6f6bb790-03a1-418a-80cf-1aaaa2e194b0'
-url = 'http://localhost:8000/'
+url = 'http://localhost:8000'
 #url = 'https://cvimporver.azurewebsites.net/'
 
 applicant_data = {
@@ -90,9 +91,8 @@ def generate_cl(uuid, description, save_path='downloaded_cover_letter.docx'):
 
 
 def test_get_applicant_data(uuid):
-    url = "http://localhost:8000/get_applicant_data"
     params = {'uuid': uuid}
-    response = requests.get(url, params=params)
+    response = requests.get(url + '/get_applicant_data', params=params)
 
     if response.status_code == 200:
         print("Data fetched successfully.")
@@ -112,74 +112,50 @@ def test_create_CV():
     assert output_path == expected_output_path
     assert os.path.exists(expected_output_path)
 
-    # Cleanup
     os.remove(expected_output_path)
 
 
-@patch('CV_generator.get_all_applicant_data')
-def test_create_user_profile(mock_get_data):
-    mock_get_data.return_value = {
-        "applicant": {
-            "full_name": "Kavid Dalmanson",
-            "email": "something@somewhere.com",
-            "phone_number": "123-456-7890",
-            "professional_summary": "Experienced software developer with a strong background in computer science and a passion for building scalable web applications.",
-            "title": "Software Developer"
-        },
-        "education": [{
-            "school_name": "Tech University",
-            "level": "BSc",
-            "start_date": "2014-09-01",
-            "end_date": "2018-06-30",
-            "gpa": 3.8,
-            "field_of_study": "Computer Science",
-            "achievements": "Graduated summa cum laude",
-            "extra_notes": "Participated in a senior project that won the university's innovation award."
-        }],
-        "projects": [{
-            "project_name": "Project Alpha",
-            "project_description": "A web application for real-time data analysis.",
-            "extra_notes": "Used technologies include React, Node.js, and PostgreSQL."
-        }],
-        "work_experience": [{
-            "title": "Senior Software Developer",
-            "company_name": "Innovatech Solutions",
-            "achievements": "Led a team of developers in creating a multi-platform application.",
-            "extra_notes": "Application increased company revenue by 20% within the first year."
-        }],
-        "skills": [{
-            "name": "JavaScript",
-            "level": "Advanced"
-        }, {
-            "name": "Python",
-            "level": "Intermediate"
-        }],
-        "languages": [{
-            "name": "English",
-            "level": "Fluent"
-        }, {
-            "name": "Spanish",
-            "level": "Intermediate"
-        }],
-        "volunteering": [{
-            "organization": "Code for Good",
-            "role": "Volunteer Mentor",
-            "details": "Mentored high school students in software development projects for non-profits."
-        }]
+
+def simulate_submit_cv(uuid, job_description, template_select):
+    data = {
+        'coverLetterText': job_description,
+        'templateSelect': template_select,
     }
 
-    # Mock the OpenAI API response if necessary
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
-    profile_dict = create_user_profile(test_id, job_details)
-    print("profile dict: ")
-    print(profile_dict)
-    assert 'Full name' in profile_dict
-    assert profile_dict['Full name'] == 'KAVID DALMANSON'
-    assert 'email place holder' in profile_dict
+    response = requests.post(url + f'/submit-cv/{uuid}', data=data, headers=headers)
+
+    if response.status_code == 200:
+        print("CV submitted successfully.")
+        with open('downloaded_cv.docx', 'wb') as f:
+            f.write(response.content)
+        print("CV has been downloaded successfully.")
+    else:
+        print(f"Failed to submit CV. Status code: {response.status_code}")
+        print("Response text:", response.text)
+
+
+def simulate_login(uuid, url='http://localhost:8000'):
+    form_data = {'uuid': uuid}
+    response = requests.post(url + '/login', data=form_data, allow_redirects=True)
+
+    if response.history:
+        print("Redirected from login.")
+
+    print(f"Final URL: {response.url}")
+
+    if response.url == url + '/login?error=UUID%20not%20found':
+        return "no applicant found"
+    elif response.status_code == 200:
+        return "Login and redirect successful."
+    else:
+        return f"Failed to login or redirect. Status code: {response.status_code}"
+
 
 # generate_cl('f7e7cdb1-c6e0-4f25-9963-56c08487bab8', job_details)
 # create_applicant(applicant_data)
 # print(update_database.get_all_applicant_data(update_database.create_connection(), '6b239e2b-1003-4fdf-aca1-a518abff6286'))
-print(test_get_applicant_data(test_id))
-test_create_CV()
-test_create_user_profile()
+# print(test_get_applicant_data(test_id))
+# simulate_submit_cv('f7e7cdb1-c6e0-4f25-9963-56c08487bab80', job_details, 'template1')
+simulate_login('123')
