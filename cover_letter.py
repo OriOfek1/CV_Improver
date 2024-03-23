@@ -4,7 +4,9 @@ from datetime import datetime
 from docx import Document
 from create_database import create_connection
 from openai import OpenAI
+import os
 
+api_key = os.getenv('OpenAI_Key')
 
 def fetch_applicant_data(uuid, conn):
     tables = [
@@ -37,7 +39,7 @@ def fetch_applicant_data(uuid, conn):
 def generate_cover_letter(applicant_data, job_data):
     client = None
     try:
-        client = OpenAI(api_key='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')
+        client = OpenAI(api_key)
     except Exception as e:
         print(str(e))
     prompt = (f"""You are a professional recruiter, perfect for helping candidates get their dream jobs.
